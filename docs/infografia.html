@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Infografía: El Nuevo Lienzo de la Justicia en Colombia</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 400px;
+            }
+        }
+        .flow-arrow {
+            font-size: 2.5rem;
+            line-height: 1;
+            color: #009FFD;
+        }
+        .kpi-box {
+            background-color: #004AAD;
+            color: white;
+            border-left: 5px solid #009FFD;
+        }
+         .swot-card {
+            min-height: 200px;
+        }
+        .timeline-item {
+            position: relative;
+            padding-bottom: 2rem;
+            padding-left: 2rem;
+            border-left: 2px solid #004AAD;
+        }
+        .timeline-item:last-child {
+            border-left: 2px solid transparent;
+        }
+        .timeline-dot {
+            position: absolute;
+            left: -0.6rem;
+            top: 0;
+            height: 1.2rem;
+            width: 1.2rem;
+            background-color: #009FFD;
+            border-radius: 50%;
+            border: 3px solid #f0f4f8;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800">
+
+    <header class="bg-white shadow-lg sticky top-0 z-50">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <nav class="flex items-center justify-between h-16">
+                <h1 class="text-xl md:text-2xl font-bold text-[#004AAD]">Justicia Digital en Colombia</h1>
+                <div class="hidden md:flex space-x-8">
+                    <a href="#fundamentos" class="text-gray-600 hover:text-[#009FFD] transition duration-300">Fundamentos</a>
+                    <a href="#prueba" class="text-gray-600 hover:text-[#009FFD] transition duration-300">Prueba</a>
+                    <a href="#ia" class="text-gray-600 hover:text-[#009FFD] transition duration-300">IA en Acción</a>
+                    <a href="#gobernanza" class="text-gray-600 hover:text-[#009FFD] transition duration-300">Gobernanza</a>
+                    <a href="#global" class="text-gray-600 hover:text-[#009FFD] transition duration-300">Contexto Global</a>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container mx-auto p-4 md:p-8">
+
+        <section id="hero" class="text-center py-12 md:py-20">
+            <h1 class="text-4xl md:text-6xl font-black text-[#2A2A72] tracking-tight">El Nuevo Lienzo de la Justicia</h1>
+            <p class="mt-4 text-lg md:text-xl text-gray-600 max-w-3xl mx-auto">Un análisis visual de la transformación digital, el Big Data y la Inteligencia Artificial en el sistema judicial colombiano.</p>
+        </section>
+
+        <section id="fundamentos" class="mb-16 scroll-mt-20">
+            <h2 class="text-3xl font-bold text-center mb-8 text-[#004AAD]">1. La Capa Fundacional: El Diluvio de Datos</h2>
+             <p class="text-center text-gray-600 max-w-3xl mx-auto mb-12">La transformación digital de la justicia se erige sobre una base de conectividad y generación de datos sin precedentes en Colombia. Este volumen masivo es tanto una oportunidad estratégica como un desafío de infraestructura que el Estado busca gestionar para generar valor social.</p>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+                <div class="kpi-box rounded-lg shadow-md p-6 flex flex-col justify-center">
+                    <div class="text-5xl font-black">9.09 M</div>
+                    <div class="mt-2 text-lg">Accesos Fijos a Internet</div>
+                </div>
+                <div class="kpi-box rounded-lg shadow-md p-6 flex flex-col justify-center">
+                    <div class="text-5xl font-black">49 M+</div>
+                    <div class="mt-2 text-lg">Accesos Móviles a Internet</div>
+                </div>
+                <div class="kpi-box rounded-lg shadow-md p-6 flex flex-col justify-center">
+                    <div class="text-5xl font-black">+24.7%</div>
+                    <div class="mt-2 text-lg">Aumento en Velocidad de Conexión Fija</div>
+                </div>
+            </div>
+            <div class="mt-12 bg-white rounded-lg shadow-md p-8">
+                <h3 class="text-2xl font-bold mb-4 text-center text-[#2A2A72]">El Desafío de la Interoperabilidad</h3>
+                <p class="text-center text-gray-600 max-w-3xl mx-auto mb-8">El principal obstáculo no es la falta de datos, sino su fragmentación. Históricamente, las entidades públicas han operado en "silos", impidiendo una visión unificada. La meta, impulsada por la Agencia Nacional Digital, es crear un ecosistema interconectado donde la información fluya de manera segura y estandarizada.</p>
+                <div class="flex flex-col md:flex-row justify-around items-center gap-8">
+                    <div class="w-full md:w-1/3 text-center">
+                        <h4 class="text-xl font-bold mb-4">Modelo de Silos (Pasado)</h4>
+                        <div class="space-y-2">
+                            <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded">Entidad A</div>
+                            <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded">Entidad B</div>
+                            <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded">Entidad C</div>
+                        </div>
+                    </div>
+                    <div class="flow-arrow transform rotate-90 md:rotate-0">→</div>
+                    <div class="w-full md:w-1/3 text-center">
+                        <h4 class="text-xl font-bold mb-4">Modelo Interoperable (Futuro)</h4>
+                        <div class="relative p-4 border-2 border-dashed border-[#009FFD] rounded-lg">
+                            <div class="absolute inset-0 flex items-center justify-center">
+                                <div class="w-24 h-24 bg-[#004AAD] rounded-full flex items-center justify-center text-white font-bold text-sm">Agencia Nacional Digital</div>
+                            </div>
+                            <div class="relative bg-green-100 border-l-4 border-green-500 text-green-700 p-3 rounded-md -translate-x-20 translate-y-12">Entidad A</div>
+                            <div class="relative bg-green-100 border-l-4 border-green-500 text-green-700 p-3 rounded-md translate-x-20 translate-y-12">Entidad B</div>
+                            <div class="relative bg-green-100 border-l-4 border-green-500 text-green-700 p-3 rounded-md -translate-y-12">Entidad C</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="prueba" class="mb-16 scroll-mt-20">
+            <h2 class="text-3xl font-bold text-center mb-8 text-[#004AAD]">2. Del Indicto Tradicional al Algoritmo</h2>
+             <p class="text-center text-gray-600 max-w-3xl mx-auto mb-12">El Big Data no solo potencia la prueba indiciaria, sino que altera sus componentes fundamentales. El razonamiento lógico y cualitativo del juez se complementa con la inferencia estadística y cuantitativa del algoritmo, redefiniendo cómo se construye la verdad procesal a partir de la evidencia indirecta.</p>
+            <div class="bg-white rounded-lg shadow-md p-8">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8 items-center text-center">
+                    <div class="p-4 border-r-0 md:border-r-2 border-gray-200">
+                        <h3 class="text-xl font-bold text-[#2A2A72] mb-4">Paradigma Tradicional</h3>
+                        <div class="space-y-4">
+                            <div class="p-3 bg-gray-100 rounded-md shadow-sm">Hecho Indicador Único</div>
+                            <div class="text-4xl text-[#009FFD]">↓</div>
+                            <div class="p-3 bg-gray-100 rounded-md shadow-sm">Regla de la Experiencia (Inferencia Humana)</div>
+                            <div class="text-4xl text-[#009FFD]">↓</div>
+                            <div class="p-3 bg-green-100 rounded-md shadow-sm font-bold">Hecho Indicado (Conclusión Lógica)</div>
+                        </div>
+                    </div>
+                     <div class="hidden md:block text-center text-gray-500 font-bold text-xl px-4">
+                        <p>TRANSFORMACIÓN</p>
+                    </div>
+                    <div class="p-4 border-t-2 md:border-t-0 md:border-l-2 border-gray-200">
+                        <h3 class="text-xl font-bold text-[#2A2A72] mb-4">Paradigma Big Data</h3>
+                        <div class="space-y-4">
+                            <div class="p-3 bg-gray-100 rounded-md shadow-sm">Constelación de Micro-Datos</div>
+                            <div class="text-4xl text-[#009FFD]">↓</div>
+                            <div class="p-3 bg-gray-100 rounded-md shadow-sm">Regla Algorítmica (Inferencia Estadística)</div>
+                             <div class="text-4xl text-[#009FFD]">↓</div>
+                            <div class="p-3 bg-green-100 rounded-md shadow-sm font-bold">Hecho Indicado (Conclusión Probabilística)</div>
+                        </div>
+                    </div>
+                </div>
+                 <div class="mt-8 pt-6 border-t">
+                    <h4 class="text-lg font-bold text-center">El Filtro de la Prueba Novel (Art. 422 CPP)</h4>
+                    <p class="text-center text-gray-600 max-w-2xl mx-auto mt-2">Para que la evidencia algorítmica sea admisible, debe superar los criterios del "Daubert Test", asegurando su fiabilidad científica y aceptación en la comunidad experta.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="ia" class="mb-16 scroll-mt-20">
+            <h2 class="text-3xl font-bold text-center mb-8 text-[#004AAD]">3. IA en Acción: Eficiencia y Dilemas Éticos</h2>
+            <p class="text-center text-gray-600 max-w-3xl mx-auto mb-12">La inteligencia artificial ya es una realidad operativa en la justicia colombiana, desde herramientas que optimizan la gestión hasta algoritmos que predicen el riesgo criminal, generando eficiencias notables y profundas controversias éticas.</p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="bg-white rounded-lg shadow-md p-6 swot-card">
+                    <h3 class="text-2xl font-bold mb-4 text-[#2A2A72]">Motor de Eficiencia: Pretoria</h3>
+                    <p class="mb-4">El sistema de IA de la Corte Constitucional, analiza y clasifica miles de tutelas, optimizando el proceso de selección.</p>
+                    <div class="text-center my-6">
+                        <span class="text-7xl font-black text-[#009FFD]">+900%</span>
+                        <p class="text-xl font-bold text-gray-700">Aumento de Eficiencia en Gestión</p>
+                    </div>
+                </div>
+                 <div class="bg-white rounded-lg shadow-md p-6 swot-card">
+                    <h3 class="text-2xl font-bold mb-4 text-[#2A2A72]">Dilema Ético: PRISMA</h3>
+                    <p class="mb-4">Herramienta de la Fiscalía para predecir el riesgo de reincidencia. Su uso plantea un dilema fundamental entre la eficiencia y la equidad.</p>
+                    <div class="flex items-center justify-center h-40">
+                        <div class="w-full">
+                            <div class="flex justify-between items-end text-center font-bold">
+                                <div class="w-2/5 p-3 bg-blue-100 rounded">Eficiencia</div>
+                                <div class="w-2/5 p-3 bg-red-100 rounded">Equidad</div>
+                            </div>
+                            <div class="h-2 bg-gray-700 mt-1 relative flex items-center">
+                                <div class="h-8 w-2 bg-gray-700 mx-auto"></div>
+                            </div>
+                             <div class="w-full h-2 bg-gray-700 rounded-full" style="clip-path: polygon(50% 100%, 0 0, 100% 0);"></div>
+                        </div>
+                    </div>
+                    <p class="text-center text-sm text-gray-500 mt-2">Riesgo de perpetuar sesgos sistémicos bajo un velo de objetividad matemática.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="gobernanza" class="mb-16 scroll-mt-20">
+            <h2 class="text-3xl font-bold text-center mb-8 text-[#004AAD]">4. Gobernanza para una Justicia Algorítmica</h2>
+             <p class="text-center text-gray-600 max-w-3xl mx-auto mb-12">Para que la integración de la IA sea legítima, debe estar envuelta en una robusta capa de gobernanza. El Acuerdo PCSJA24-12243 del Consejo Superior de la Judicatura establece un marco ético pionero, aunque persisten desafíos como la opacidad de las "cajas negras".</p>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h3 class="text-2xl font-bold mb-4 text-[#2A2A72]">Necesidad de Regulación</h3>
+                     <p class="mb-4 text-gray-600">Una encuesta a servidores judiciales reveló un amplio consenso sobre la necesidad de lineamientos claros para el uso de IA.</p>
+                    <div class="chart-container" style="height: 300px;">
+                        <canvas id="iaAdoptionChart"></canvas>
+                    </div>
+                </div>
+                <div class="bg-white rounded-lg shadow-md p-6">
+                     <h3 class="text-2xl font-bold mb-4 text-[#2A2A72]">Principios del Acuerdo PCSJA24-12243</h3>
+                    <div class="relative mt-4">
+                        <div class="timeline-item">
+                            <div class="timeline-dot"></div>
+                            <h4 class="font-bold">Control Humano</h4>
+                            <p class="text-sm text-gray-600">La decisión final recae siempre en el juez, no en el algoritmo.</p>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-dot"></div>
+                            <h4 class="font-bold">Transparencia y Explicabilidad (XAI)</h4>
+                            <p class="text-sm text-gray-600">Se debe poder justificar y entender cómo la IA llega a un resultado.</p>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-dot"></div>
+                            <h4 class="font-bold">No Discriminación</h4>
+                            <p class="text-sm text-gray-600">Evitar y proscribir sesgos que afecten los derechos humanos.</p>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-dot"></div>
+                            <h4 class="font-bold">Responsabilidad</h4>
+                            <p class="text-sm text-gray-600">El funcionario es responsable del uso de la herramienta y sus resultados.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="global" class="mb-16 scroll-mt-20">
+            <h2 class="text-3xl font-bold text-center mb-8 text-[#004AAD]">5. Colombia en el Contexto Global</h2>
+             <p class="text-center text-gray-600 max-w-3xl mx-auto mb-12">Las iniciativas de Colombia se alinean con estándares éticos internacionales, pero su enfoque regulatorio de "soft law" difiere de modelos más estrictos como el de la Unión Europea, planteando un debate estratégico sobre el futuro de la regulación.</p>
+            <div class="bg-white rounded-lg shadow-md overflow-x-auto">
+                <table class="w-full text-sm text-left text-gray-600">
+                    <thead class="text-xs text-white uppercase bg-[#004AAD]">
+                        <tr>
+                            <th scope="col" class="px-6 py-3">Parámetro</th>
+                            <th scope="col" class="px-6 py-3">Colombia (Acuerdo CSJ)</th>
+                            <th scope="col" class="px-6 py-3">Unión Europea (Ley de IA)</th>
+                            <th scope="col" class="px-6 py-3">Brasil (Proyecto de Ley)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="bg-white border-b">
+                            <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">Estatus Legal</th>
+                            <td class="px-6 py-4">"Soft Law" (Acuerdo administrativo)</td>
+                            <td class="px-6 py-4 font-bold">"Hard Law" (Reglamento vinculante)</td>
+                            <td class="px-6 py-4">Mixto ("Hard" y "Soft Law")</td>
+                        </tr>
+                        <tr class="bg-gray-50 border-b">
+                            <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">Clasificación de Riesgo</th>
+                            <td class="px-6 py-4">Implícita</td>
+                            <td class="px-6 py-4 font-bold">Explícita (Justicia = "Alto Riesgo")</td>
+                            <td class="px-6 py-4">Explícita</td>
+                        </tr>
+                        <tr class="bg-white border-b">
+                            <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">Usos Prohibidos</th>
+                            <td class="px-6 py-4">Prohíbe herramientas gratuitas</td>
+                            <td class="px-6 py-4 font-bold">Prohíbe "social scoring" y policía predictiva</td>
+                            <td class="px-6 py-4">Prohíbe predicción basada en perfiles</td>
+                        </tr>
+                        <tr class="bg-gray-50">
+                            <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">Supervisión Humana</th>
+                            <td class="px-6 py-4 font-bold">Principio Central</td>
+                            <td class="px-6 py-4">Requisito para Alto Riesgo</td>
+                            <td class="px-6 py-4">Requisito Explícito</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-[#2A2A72] text-white text-center p-6 mt-12">
+        <p>Infografía generada a partir del análisis de los informes de investigación sobre la transformación digital de la justicia en Colombia.</p>
+        <p class="text-sm mt-2 opacity-75">&copy; 2024. Prohibida la reproducción sin atribución.</p>
+    </footer>
+
+    <script>
+        const wrapLabel = (label) => {
+            const maxLength = 16;
+            if (label.length <= maxLength) return label;
+            
+            const words = label.split(' ');
+            let lines = [];
+            let currentLine = '';
+
+            words.forEach(word => {
+                if ((currentLine + ' ' + word).trim().length > maxLength) {
+                    lines.push(currentLine.trim());
+                    currentLine = word;
+                } else {
+                    currentLine = (currentLine + ' ' + word).trim();
+                }
+            });
+            lines.push(currentLine.trim());
+            return lines;
+        };
+
+        const tooltipTitleCallback = (tooltipItems) => {
+            const item = tooltipItems[0];
+            let label = item.chart.data.labels[item.dataIndex];
+            if (Array.isArray(label)) {
+              return label.join(' ');
+            } else {
+              return label;
+            }
+        };
+
+        const commonPlugins = {
+            legend: {
+                labels: {
+                    color: '#4A5568'
+                }
+            },
+            tooltip: {
+                callbacks: {
+                    title: tooltipTitleCallback
+                }
+            }
+        };
+
+        const iaAdoptionCtx = document.getElementById('iaAdoptionChart').getContext('2d');
+        new Chart(iaAdoptionCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Consideran necesarios los lineamientos', 'No consideran necesarios / No responden'],
+                datasets: [{
+                    label: 'Necesidad de Lineamientos de IA',
+                    data: [91, 9],
+                    backgroundColor: [
+                        '#009FFD',
+                        '#E2E8F0',
+                    ],
+                    borderColor: [
+                        '#FFFFFF',
+                        '#FFFFFF'
+                    ],
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '70%',
+                plugins: {
+                    ...commonPlugins,
+                    legend: {
+                        position: 'bottom',
+                         labels: {
+                            color: '#4A5568'
+                        }
+                    },
+                    title: {
+                        display: false
+                    }
+                }
+            }
+        });
+
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+    </script>
+</body>
+</html>
