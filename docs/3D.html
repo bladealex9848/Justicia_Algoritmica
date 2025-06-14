@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Análisis Interactivo 3D: Big Data y Justicia</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            background-color: #010409;
+            color: #c9d1d9;
+            overflow: hidden;
+        }
+        #info-panel {
+            background: rgba(13, 17, 23, 0.85);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(48, 54, 61, 0.8);
+            box-shadow: 0 0 30px rgba(0, 128, 255, 0.2);
+            transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
+        }
+        #info-panel.hidden {
+            opacity: 0;
+            transform: translateX(100%);
+        }
+        .node-label {
+            color: white;
+            text-shadow: 0 0 5px #00aaff, 0 0 10px #00aaff;
+            font-size: 16px;
+            pointer-events: none;
+        }
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1c2128;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #30363d;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #484f58;
+        }
+        .source-link {
+            color: #58a6ff;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        .source-link:hover {
+            color: #80bfff;
+        }
+        .loader {
+            width: 50px;
+            aspect-ratio: 1;
+            border-radius: 50%;
+            border: 8px solid;
+            border-color: #58a6ff #0000;
+            animation: l1 1s infinite;
+        }
+        @keyframes l1 {to{transform: rotate(.5turn)}}
+    </style>
+</head>
+<body>
+    <div id="loader-container" class="absolute inset-0 bg-[#010409] flex items-center justify-center z-50">
+        <div class="flex flex-col items-center gap-4">
+            <div class="loader"></div>
+            <p class="text-lg text-gray-400">Construyendo el entorno de análisis...</p>
+        </div>
+    </div>
+
+    <div id="main-canvas-container"></div>
+
+    <div id="info-panel" class="hidden absolute top-0 right-0 h-full w-full md:w-1/3 p-6 md:p-8 overflow-y-auto">
+        <button id="close-panel-btn" class="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors text-2xl font-bold">&times;</button>
+        <div id="info-content" class="mt-8">
+            <h2 id="info-title" class="text-2xl font-bold mb-4 text-white" style="text-shadow: 0 0 8px rgba(88, 166, 255, 0.7);"></h2>
+            <div id="info-body" class="text-base leading-relaxed"></div>
+        </div>
+    </div>
+    
+    <div id="hud" class="absolute top-4 left-4 text-white pointer-events-none">
+        <h1 class="text-3xl font-bold">Justicia y Big Data: Exploración 3D</h1>
+        <p class="text-lg text-gray-400">Seleccione un nodo para analizar el concepto.</p>
+    </div>
+
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+            }
+        }
+    </script>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+        import { CSS2DObject, CSS2DRenderer } from 'three/addons/renderers/CSS2DRenderer.js';
+
+        const contentData = {
+            q1: {
+                title: "¿Ha cambiado la recopilación y análisis de evidencia?",
+                text: "Absolutamente. El cambio es radical y va más allá de una simple modernización. Hemos pasado de un mundo de escasez de pruebas físicas a uno de sobreabundancia de datos digitales. La \"escena del crimen\" ahora es también el dominio digital: la nube, los registros de un GPS, las transacciones o la actividad en redes sociales. El análisis ya no es solo una revisión humana y lineal; ahora es algorítmico, capaz de procesar volúmenes masivos de información para encontrar patrones y correlaciones que serían invisibles para nosotros. Esto no es hacer lo de siempre más rápido, es hacer algo completamente nuevo: extraer conocimiento de datos dispersos para reconstruir hechos.",
+                animation: 'digitalVortex'
+            },
+            q2: {
+                title: "¿Qué principios del debido proceso son impactados?",
+                text: "El impacto es directo y profundo sobre las garantías más sagradas del debido proceso. El derecho a la defensa y a la contradicción se ve amenazado cuando nos enfrentamos a algoritmos de \"caja negra\" que no podemos interrogar. La presunción de inocencia se pone en riesgo con sistemas predictivos que pueden generar un sesgo de \"culpabilidad futura\" en el juzgador. La imparcialidad judicial puede ser socavada por sesgos algorítmicos que perpetúan discriminaciones sistémicas sin que el juez sea consciente de ello. Finalmente, el derecho a una decisión motivada se vulnera si un fallo se basa en un resultado computacional que no puede ser explicado lógicamente en términos jurídicos.",
+                animation: 'imbalancedScales'
+            },
+            q3: {
+                title: "¿Desafíos regulatorios en Colombia?",
+                text: "Desde el punto de vista regulatorio, los desafíos son enormes. Primero, necesitamos adaptar nuestras normas probatorias, diseñadas para pruebas tangibles, a una evidencia que es por naturaleza probabilística y algorítmica. Segundo, es urgente crear una gobernanza de datos clara que equilibre la necesidad investigativa del Estado con el derecho a la privacidad y al habeas data. Tercero, debemos establecer estándares técnicos mínimos de transparencia y explicabilidad para los algoritmos. Y, por último, un desafío crucial es la capacitación y acreditación de jueces, fiscales y abogados para que puedan interactuar con estas tecnologías de forma crítica y competente.",
+                animation: 'regulatoryMaze'
+            },
+            q4: {
+                title: "¿Existe un control normativo que garantice la legalidad?",
+                text: "Actualmente, no tenemos una ley específica e integral. El control normativo es un mosaico de normas preexistentes que aplicamos de forma indirecta. La principal vía de control es a través de las reglas de la prueba pericial y la prueba novel del Código de Procedimiento Penal (Art. 422), que exige demostrar la fiabilidad científica de una técnica. También aplicamos la Ley 1581 de 2012 sobre protección de datos como un límite fundamental. Y aunque el Consejo Superior de la Judicatura ha emitido lineamientos éticos muy importantes (Acuerdo PCSJA24-12243), estos son \"soft law\", es decir, directrices sin fuerza de ley vinculante. En resumen, la regulación es fragmentaria y deja vacíos que generan incertidumbre.",
+                animation: 'patchworkLaw'
+            },
+            q5: {
+                title: "¿Beneficios del análisis masivo de datos?",
+                text: "Los beneficios son significativos, siempre que se usen con cautela. El análisis masivo de datos nos permite identificar patrones delictivos y modus operandi al conectar información que antes estaba aislada en diferentes bases de datos. Facilita el análisis de vínculos entre personas, lugares y eventos que a simple vista no parecen relacionados, haciendo las investigaciones más eficientes. Además, es una herramienta poderosa para enriquecer y verificar otras pruebas; por ejemplo, una coartada puede ser corroborada o desmentida al contrastarla con registros de geolocalización o transacciones financieras. La policía predictiva es otra área de beneficio potencial, pero debe manejarse con extrema precaución por el alto riesgo de amplificar sesgos históricos y discriminación.",
+                animation: 'networkGraph'
+            },
+            q6: {
+                title: "¿Cómo contribuye el Big Data a la prueba indiciaria?",
+                text: "El Big Data no solo potencia la prueba indiciaria, sino que la reconfigura estructuralmente. Primero, transforma el hecho indicador: ya no es un hecho único y probado (como \"el acusado huyó\"), sino una constelación de miles de micro-indicadores digitales cuyo patrón colectivo es estadísticamente significativo. Segundo, revoluciona el proceso de inferencia: la \"regla de la experiencia\" del juez, basada en el sentido común, es complementada o reemplazada por una \"regla algorítmica\" derivada del análisis estadístico. Esto nos permite pasar de una inferencia cualitativa a una conclusión con un grado de probabilidad cuantificable, fortaleciendo enormemente la robustez del indicio.",
+                animation: 'indiciumTransform'
+            },
+             q7: {
+                title: "¿Límites jurídicos en la utilización de datos de IA?",
+                text: "Los límites son claros e infranqueables: los derechos fundamentales. Ninguna eficiencia tecnológica puede justificar la vulneración del debido proceso, la presunción de inocencia, la intimidad o la igualdad. Otro límite es el principio de legalidad probatoria: los datos base deben ser obtenidos lícitamente, de lo contrario, la prueba es nula. Además, su uso debe regirse por los principios de necesidad y proporcionalidad. Y, finalmente, un límite emergente y crucial es el principio de explicabilidad: una conclusión basada en un algoritmo de \"caja negra\" que no puede ser explicado y, por tanto, contradicho, sería inconstitucional por falta de motivación.",
+                animation: 'glowingBoundaries'
+            },
+            q8: {
+                title: "¿Prueba autónoma o complementaria?",
+                text: "En el estado actual de la tecnología y el derecho, debe ser considerado un método de prueba complementario, no autónomo. Un resultado algorítmico por sí solo no es una prueba plena; es un elemento material probatorio que debe ser introducido al proceso a través de una prueba pericial que valide su metodología y fiabilidad. Su valoración debe hacerse siempre en conjunto con las demás pruebas del expediente, bajo las reglas de la sana crítica. Una condena no podría sustentarse exclusivamente en un hallazgo algorítmico. A futuro, con la estandarización y certificación, podría ganar autonomía, como ocurrió con la prueba de ADN, pero hoy no estamos en ese punto.",
+                animation: 'supportPillars'
+            },
+            q9: {
+                title: "¿Cómo se establece la causalidad?",
+                text: "Este es el \"talón de Aquiles\" del Big Data. Los algoritmos son excelentes para encontrar correlaciones, pero son incapaces de establecer causalidad por sí mismos. Un algoritmo puede decirnos que dos eventos ocurren juntos, pero no por qué. Por lo tanto, establecer esa relación de causalidad es una tarea intelectual que recae exclusivamente en el juez, en un proceso de dos pasos: primero, una validación técnica a través de un perito que explique la fiabilidad de la correlación encontrada. Y segundo, una validación jurídico-lógica, donde el juez integra esa correlación en una narrativa coherente con el resto de las pruebas, aplicando las reglas de la experiencia y la sana crítica para construir el nexo causal. El algoritmo da el \"qué\", el juez debe construir el \"porqué\".",
+                animation: 'causalityLink'
+            },
+            q10: {
+                title: "¿Afectación al derecho de defensa y contradicción?",
+                text: "La afectación es gravísima. Genera una profunda asimetría de armas, donde el Estado cuenta con herramientas de análisis que la defensa, especialmente la pública, no puede igualar. Más importante aún, anula casi por completo la contradicción efectiva. ¿Cómo se contrainterroga a un algoritmo? Para hacerlo, la defensa necesitaría acceso al código fuente, a los datos de entrenamiento y a la metodología, información que suele estar protegida por secretos comerciales. Sin poder auditar y cuestionar el proceso que generó el resultado, el derecho a la contradicción se convierte en una formalidad vacía, una ilusión.",
+                animation: 'blackBoxDefense'
+            },
+            q11: {
+                title: "¿Transformación de la función judicial?",
+                text: "Sí, sin duda puede acelerar la toma de decisiones, como ya lo demuestran herramientas como Pretoria en la Corte Constitucional, que automatizan tareas de clasificación y gestión. Sin embargo, la independencia judicial enfrenta un riesgo sutil: la dependencia cognitiva. El peligro no es que un robot reemplace al juez, sino que el juez, abrumado por la carga laboral, comience a aceptar acríticamente las recomendaciones del algoritmo, un fenómeno conocido como \"sesgo de automatización\". Esto erosionaría el juicio independiente. Por ello, el principio rector es que la IA debe ser siempre una herramienta de apoyo, pero la responsabilidad y la decisión final deben permanecer, indelegablemente, en el ser humano.",
+                animation: 'cognitiveAutomation'
+            },
+            q12: {
+                title: "¿Herramientas para fortalecer la recolección y análisis?",
+                text: "Debemos priorizar tecnologías que incorporen garantías \"por diseño\". Por ejemplo, herramientas de Inteligencia Artificial Explicable (XAI), que no sean \"cajas negras\" y puedan justificar sus resultados, como ya lo sugieren las directrices del Consejo Superior. También es clave el software de cadena de custodia digital, que crea un registro inalterable de cada interacción con la evidencia digital para garantizar su integridad. Asimismo, las plataformas de Inteligencia de Fuentes Abiertas (OSINT) son muy útiles, pero deben tener salvaguardas éticas para no convertirse en herramientas de vigilancia masiva. Finalmente, las plataformas de análisis federado permiten analizar datos sin centralizarlos, protegiendo mejor la privacidad.",
+                animation: 'techToolbox'
+            },
+            q13: {
+                title: "¿Elementos para garantizar legalidad e imparcialidad?",
+                text: "Para garantizar un debido proceso robusto, combinaría elementos probatorios y tecnológicos. El elemento probatorio central sería un Informe Pericial de Validación Algorítmica obligatorio, que detalle el modelo, los datos, las tasas de error y una auditoría de sesgos. Tecnológicamente, implementaría entornos de prueba seguros (sandboxing) para que la defensa pueda auditar los algoritmos de la acusación. También usaría tecnología de registros inmutables (como blockchain) para crear una traza auditable de todo el proceso analítico. Pero el elemento más crucial no es tecnológico, sino humano: una inversión seria y continua en la capacitación de jueces, fiscales y defensores para que sean consumidores críticos, y no pasivos, de estas tecnologías.",
+                animation: 'justiceFoundation'
+            },
+            profile: {
+                title: "Perfil Profesional: Alexander Oviedo Fadul",
+                text: "Abogado e Ingeniero de Sistemas con especialización en Inteligencia de Negocios, Big Data y LegalTech. Mi trayectoria híbrida busca activamente cerrar la brecha entre el derecho y la tecnología, aplicando conocimientos en desarrollo full-stack, análisis de datos e IA para crear soluciones innovadoras dentro de la Rama Judicial. Actualmente, como Profesional Universitario en el Consejo Seccional de la Judicatura de Sucre, mi rol se centra en la implementación de políticas de modernización, enfrentando los desafíos prácticos de la transformación digital en el terreno. Esta perspectiva dual, informada por la experiencia técnica y la realidad administrativa, fundamenta el análisis presentado.",
+                animation: 'dualProfile'
+            },
+            model: {
+                title: "Modelo Conceptual de 5 Capas",
+                text: "Para entender la transformación digital, propongo un modelo de cinco capas interconectadas: 1. **Fundacional**: La infraestructura de datos e interoperabilidad. 2. **Procesal**: La adaptación del derecho probatorio a la evidencia algorítmica. 3. **Aplicación**: Las herramientas de IA en uso, como Pretoria y PRISMA. 4. **Gobernanza**: El marco ético y regulatorio, liderado por el Acuerdo PCSJA24-12243. 5. **Global**: La posición de Colombia en el escenario regulatorio internacional. Cada capa depende de la anterior, formando un ecosistema complejo.",
+                animation: 'layerModel'
+            },
+            sources: {
+                title: "Fuentes Consultadas",
+                text: `<ul class="list-disc list-inside space-y-2">
+                    <li>[1] Perfil de LinkedIn de Alexander Oviedo Fadul</li>
+                    <li>[2] Sitio Web 'alexanderoviedofadul.dev'</li>
+                    <li>[3] Publicaciones y proyectos mencionados en las fuentes 1 y 2.</li>
+                    <li>[4] Ley 270 de 1996 - Ley Estatutaria de la Administración de Justicia.</li>
+                    <li>[5] Jurisprudencia de la Corte Constitucional y Consejo de Estado sobre funciones de los Consejos Seccionales.</li>
+                    <li>...y más de 80 otras fuentes académicas, legales y técnicas detalladas en el informe original.</li>
+                </ul>
+                <p class="mt-4">Nota: Esta es una lista resumida. La investigación completa se basa en un cuerpo de fuentes mucho más extenso.</p>`,
+                animation: 'sourceLibrary'
+            }
+        };
+
+        let scene, camera, renderer, labelRenderer, controls;
+        let mainGroup;
+        const nodes = [];
+        let activeAnimation = null;
+        let activeNode = null;
+
+        function init() {
+            const container = document.getElementById('main-canvas-container');
+            
+            scene = new THREE.Scene();
+            scene.fog = new THREE.FogExp2(0x010409, 0.03);
+
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.z = 30;
+
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            container.appendChild(renderer.domElement);
+
+            labelRenderer = new CSS2DRenderer();
+            labelRenderer.setSize(window.innerWidth, window.innerHeight);
+            labelRenderer.domElement.style.position = 'absolute';
+            labelRenderer.domElement.style.top = '0px';
+            labelRenderer.domElement.style.pointerEvents = 'none';
+            container.appendChild(labelRenderer.domElement);
+
+            controls = new OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+            controls.minDistance = 5;
+            controls.maxDistance = 100;
+            controls.enablePan = false;
+
+            const ambientLight = new THREE.AmbientLight(0x404040, 2);
+            scene.add(ambientLight);
+            const directionalLight = new THREE.DirectionalLight(0x58a6ff, 1);
+            directionalLight.position.set(5, 5, 5);
+            scene.add(directionalLight);
+            
+            const starGeometry = new THREE.BufferGeometry();
+            const starVertices = [];
+            for (let i = 0; i < 10000; i++) {
+                const x = THREE.MathUtils.randFloatSpread(2000);
+                const y = THREE.MathUtils.randFloatSpread(2000);
+                const z = THREE.MathUtils.randFloatSpread(2000);
+                starVertices.push(x, y, z);
+            }
+            starGeometry.setAttribute('position', new THREE.Float32BufferAttribute(starVertices, 3));
+            const starMaterial = new THREE.PointsMaterial({ color: 0x888888, size: 0.1 });
+            const stars = new THREE.Points(starGeometry, starMaterial);
+            scene.add(stars);
+
+            mainGroup = new THREE.Group();
+            scene.add(mainGroup);
+            
+            createNodes();
+
+            window.addEventListener('resize', onWindowResize, false);
+            document.getElementById('close-panel-btn').addEventListener('click', closeInfoPanel);
+            renderer.domElement.addEventListener('click', onCanvasClick, false);
+
+            document.getElementById('loader-container').style.display = 'none';
+
+            animate();
+        }
+
+        function createNodes() {
+            const keys = Object.keys(contentData);
+            const numNodes = keys.length;
+            const radius = 15;
+
+            keys.forEach((key, i) => {
+                const angle = (i / numNodes) * Math.PI * 2;
+                const x = radius * Math.cos(angle);
+                const y = THREE.MathUtils.randFloat(-5, 5);
+                const z = radius * Math.sin(angle);
+
+                const geometry = new THREE.IcosahedronGeometry(0.5, 1);
+                const material = new THREE.MeshStandardMaterial({
+                    color: 0x58a6ff,
+                    emissive: 0x003366,
+                    metalness: 0.8,
+                    roughness: 0.2,
+                });
+                const nodeMesh = new THREE.Mesh(geometry, material);
+                nodeMesh.position.set(x, y, z);
+                nodeMesh.userData.id = key;
+                mainGroup.add(nodeMesh);
+
+                const labelDiv = document.createElement('div');
+                labelDiv.className = 'node-label';
+                labelDiv.textContent = contentData[key].title.split('?')[0];
+
+                const label = new CSS2DObject(labelDiv);
+                label.position.copy(nodeMesh.position);
+                mainGroup.add(label);
+                
+                nodes.push(nodeMesh);
+            });
+        }
+        
+        function onCanvasClick(event) {
+            if (event.target !== renderer.domElement) return;
+
+            const raycaster = new THREE.Raycaster();
+            const mouse = new THREE.Vector2();
+            
+            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = - (event.clientY / window.innerHeight) * 2 + 1;
+            
+            raycaster.setFromCamera(mouse, camera);
+            
+            const intersects = raycaster.intersectObjects(nodes);
+            
+            if (intersects.length > 0) {
+                const selectedNode = intersects[0].object;
+                if(selectedNode !== activeNode){
+                    selectNode(selectedNode);
+                }
+            }
+        }
+        
+        function selectNode(node) {
+            activeNode = node;
+            const nodeId = node.userData.id;
+            const data = contentData[nodeId];
+
+            if (activeAnimation && activeAnimation.dispose) {
+                activeAnimation.dispose();
+            }
+            activeAnimation = createAnimation(data.animation);
+
+            document.getElementById('info-title').innerHTML = data.title;
+            document.getElementById('info-body').innerHTML = data.text;
+            document.getElementById('info-panel').classList.remove('hidden');
+
+            const targetPosition = node.position.clone().multiplyScalar(1.5);
+            const targetLookAt = node.position.clone();
+            
+            const startPosition = camera.position.clone();
+            const startLookAt = controls.target.clone();
+            let duration = 1000;
+            let startTime = null;
+
+            function moveCam(timestamp) {
+                if (!startTime) startTime = timestamp;
+                const progress = Math.min((timestamp - startTime) / duration, 1);
+                
+                const easedProgress = 0.5 * (1 - Math.cos(Math.PI * progress));
+
+                camera.position.lerpVectors(startPosition, targetPosition, easedProgress);
+                controls.target.lerpVectors(startLookAt, targetLookAt, easedProgress);
+                
+                if (progress < 1) {
+                    requestAnimationFrame(moveCam);
+                }
+            }
+            requestAnimationFrame(moveCam);
+        }
+
+        function closeInfoPanel() {
+            document.getElementById('info-panel').classList.add('hidden');
+            if (activeAnimation && activeAnimation.dispose) {
+                activeAnimation.dispose();
+                activeAnimation = null;
+            }
+            activeNode = null;
+        }
+        
+        function createAnimation(type) {
+            let group = new THREE.Group();
+            let updateFn = () => {};
+            let disposeFn = () => { scene.remove(group); group.children.forEach(c => { if(c.geometry) c.geometry.dispose(); if(c.material) c.material.dispose(); }); };
+            
+            const animationPosition = new THREE.Vector3(0, 0, -5);
+            group.position.copy(animationPosition);
+            
+            switch(type) {
+                case 'digitalVortex': {
+                    const points = [];
+                    for(let i=0; i<5000; i++) {
+                        points.push(new THREE.Vector3((Math.random() - 0.5) * 10, (Math.random() - 0.5) * 10, (Math.random() - 0.5) * 10));
+                    }
+                    const geo = new THREE.BufferGeometry().setFromPoints(points);
+                    const mat = new THREE.PointsMaterial({color: 0x58a6ff, size: 0.05, transparent: true, opacity: 0.7});
+                    const vortex = new THREE.Points(geo, mat);
+                    group.add(vortex);
+                    updateFn = (time) => { vortex.rotation.y = time * 0.5; };
+                    break;
+                }
+                case 'imbalancedScales': {
+                    const beamGeo = new THREE.BoxGeometry(5, 0.1, 0.1);
+                    const beamMat = new THREE.MeshStandardMaterial({color: 0xffffff});
+                    const beam = new THREE.Mesh(beamGeo, beamMat);
+                    const panGeo = new THREE.CylinderGeometry(1, 1, 0.05, 32);
+                    const pan1 = new THREE.Mesh(panGeo, beamMat);
+                    pan1.position.x = -2.5;
+                    const pan2 = new THREE.Mesh(panGeo, beamMat);
+                    pan2.position.x = 2.5;
+                    beam.add(pan1, pan2);
+                    const boxGeo = new THREE.BoxGeometry(0.5, 0.5, 0.5);
+                    const boxMat = new THREE.MeshStandardMaterial({color: 0xff0000, emissive: 0x550000});
+                    const blackBox = new THREE.Mesh(boxGeo, boxMat);
+                    blackBox.position.set(2.5, 0.3, 0);
+                    group.add(beam, blackBox);
+                    updateFn = (time) => {
+                        beam.rotation.z = Math.sin(time) * 0.1 - 0.2;
+                        blackBox.position.y = 0.3 + beam.rotation.z * -2.5;
+                    };
+                    break;
+                }
+                 case 'regulatoryMaze': {
+                    for(let i=0; i<20; i++) {
+                        const wallGeo = new THREE.BoxGeometry(Math.random() * 4 + 1, 2, 0.1);
+                        const wallMat = new THREE.MeshStandardMaterial({color: 0xaaaaaa, transparent: true, opacity: 0.5});
+                        const wall = new THREE.Mesh(wallGeo, wallMat);
+                        wall.position.set((Math.random() - 0.5) * 10, (Math.random() - 0.5) * 2, (Math.random() - 0.5) * 10);
+                        wall.rotation.y = Math.random() * Math.PI;
+                        group.add(wall);
+                    }
+                    updateFn = (time) => { group.rotation.y = time * 0.1; };
+                    break;
+                }
+                case 'patchworkLaw': {
+                    for (let i = 0; i < 15; i++) {
+                        const geo = new THREE.PlaneGeometry(1.5, 1.5);
+                        const mat = new THREE.MeshStandardMaterial({color: new THREE.Color(Math.random() * 0x888888 + 0x444444), side: THREE.DoubleSide});
+                        const patch = new THREE.Mesh(geo, mat);
+                        patch.position.set((Math.random() - 0.5) * 5, (Math.random() - 0.5) * 5, (Math.random() - 0.5) * 2);
+                        patch.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI);
+                        group.add(patch);
+                    }
+                    updateFn = (time) => { group.rotation.y = time * 0.1; };
+                    break;
+                }
+                case 'networkGraph': {
+                    const nodesData = [];
+                    const sphereGeo = new THREE.SphereGeometry(0.2, 16, 16);
+                    const sphereMat = new THREE.MeshStandardMaterial({ color: 0x58a6ff, emissive: 0x113366 });
+                    for (let i = 0; i < 8; i++) {
+                        const node = new THREE.Mesh(sphereGeo, sphereMat);
+                        node.position.set((Math.random() - 0.5) * 6, (Math.random() - 0.5) * 6, (Math.random() - 0.5) * 6);
+                        group.add(node);
+                        nodesData.push(node);
+                    }
+                    for (let i = 0; i < nodesData.length * 1.5; i++) {
+                        const startNode = nodesData[Math.floor(Math.random() * nodesData.length)];
+                        const endNode = nodesData[Math.floor(Math.random() * nodesData.length)];
+                        if(startNode === endNode) continue;
+                        const lineGeo = new THREE.BufferGeometry().setFromPoints([startNode.position, endNode.position]);
+                        const lineMat = new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.3 });
+                        const line = new THREE.Line(lineGeo, lineMat);
+                        group.add(line);
+                    }
+                    updateFn = (time) => { group.rotation.y = time * 0.2; group.rotation.x = time * 0.1; };
+                    break;
+                }
+                case 'indiciumTransform': {
+                    const mainSphere = new THREE.Mesh(new THREE.SphereGeometry(1, 32, 32), new THREE.MeshStandardMaterial({ color: 0xffffff, transparent: true, opacity: 1.0, emissive: 0x444444 }));
+                    group.add(mainSphere);
+                    const smallSpheres = [];
+                    for (let i = 0; i < 20; i++) {
+                        const smallSphere = new THREE.Mesh(new THREE.SphereGeometry(0.1, 8, 8), new THREE.MeshStandardMaterial({ color: 0x58a6ff, transparent: true, opacity: 0 }));
+                        smallSphere.userData.targetPos = new THREE.Vector3((Math.random() - 0.5) * 4, (Math.random() - 0.5) * 4, (Math.random() - 0.5) * 4);
+                        group.add(smallSphere);
+                        smallSpheres.push(smallSphere);
+                    }
+                    updateFn = (time) => {
+                        const phase = (Math.sin(time * 0.7) + 1) / 2;
+                        mainSphere.material.opacity = 1 - phase;
+                        mainSphere.scale.setScalar(1 - phase);
+                        smallSpheres.forEach(s => {
+                            s.material.opacity = phase;
+                            s.position.lerp(s.userData.targetPos, phase * 0.1);
+                        });
+                    };
+                    break;
+                }
+                case 'glowingBoundaries': {
+                    const boxGeo = new THREE.BoxGeometry(5, 5, 5);
+                    const edges = new THREE.EdgesGeometry(boxGeo);
+                    const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0xff0000, transparent: true }));
+                    line.material.linewidth = 2;
+                    group.add(line);
+                    updateFn = (time) => {
+                        line.material.opacity = (Math.sin(time * 2) + 1) / 2 * 0.5 + 0.5;
+                        group.rotation.y = time * 0.1;
+                    };
+                    break;
+                }
+                case 'supportPillars': {
+                    const platformGeo = new THREE.CylinderGeometry(3, 3, 0.2, 32);
+                    const platformMat = new THREE.MeshStandardMaterial({ color: 0xcccccc, metalness: 0.5, roughness: 0.5 });
+                    const platform = new THREE.Mesh(platformGeo, platformMat);
+                    platform.position.y = 1.1;
+                    group.add(platform);
+                    const pillarGeo = new THREE.CylinderGeometry(0.3, 0.3, 2, 32);
+                    const pillarMat = new THREE.MeshStandardMaterial({ color: 0x58a6ff, metalness: 0.5, roughness: 0.5 });
+                    for (let i = 0; i < 5; i++) {
+                        const pillar = new THREE.Mesh(pillarGeo, pillarMat);
+                        const angle = (i / 5) * Math.PI * 2;
+                        pillar.position.set(Math.cos(angle) * 2, 0, Math.sin(angle) * 2);
+                        group.add(pillar);
+                    }
+                    updateFn = (time) => { group.rotation.y = time * 0.1; };
+                    break;
+                }
+                 case 'causalityLink': {
+                    const sphere1 = new THREE.Mesh(new THREE.SphereGeometry(0.5, 32, 16), new THREE.MeshStandardMaterial({color: 0xffffff}));
+                    sphere1.position.x = -2;
+                    const sphere2 = new THREE.Mesh(new THREE.SphereGeometry(0.5, 32, 16), new THREE.MeshStandardMaterial({color: 0xffffff}));
+                    sphere2.position.x = 2;
+                    group.add(sphere1, sphere2);
+                    const curve = new THREE.Line(
+                        new THREE.BufferGeometry().setFromPoints([sphere1.position, sphere2.position]),
+                        new THREE.LineBasicMaterial({color: 0xff0000, linewidth: 3, transparent: true})
+                    );
+                    group.add(curve);
+                    updateFn = (time) => {
+                        curve.material.opacity = (Math.sin(time * 5) + 1) / 2 * 0.7 + 0.3;
+                    };
+                    break;
+                }
+                case 'blackBoxDefense': {
+                    const boxGeo = new THREE.BoxGeometry(2, 2, 2);
+                    const boxMat = new THREE.MeshStandardMaterial({color: 0x111111});
+                    const blackBox = new THREE.Mesh(boxGeo, boxMat);
+                    group.add(blackBox);
+
+                    const shieldGeo = new THREE.PlaneGeometry(3, 3);
+                    const shieldMat = new THREE.MeshBasicMaterial({color: 0x58a6ff, transparent: true, opacity: 0.5, side: THREE.DoubleSide});
+                    const shield = new THREE.Mesh(shieldGeo, shieldMat);
+                    shield.position.z = 2;
+                    group.add(shield);
+                    updateFn = (time) => {
+                        shield.material.opacity = (Math.sin(time*3) + 1) / 2 * 0.3 + 0.3;
+                        group.rotation.y = time * 0.2;
+                    };
+                    break;
+                }
+                 case 'cognitiveAutomation': {
+                    const headGeo = new THREE.SphereGeometry(2, 32, 16);
+                    const headMat = new THREE.MeshStandardMaterial({color: 0x58a6ff, transparent: true, opacity: 0.2});
+                    const head = new THREE.Mesh(headGeo, headMat);
+                    group.add(head);
+
+                    const gearGeo = new THREE.TorusGeometry(0.5, 0.2, 8, 20);
+                    const gearMat = new THREE.MeshStandardMaterial({color: 0xffffff});
+                    for(let i=0; i<3; i++) {
+                        const gear = new THREE.Mesh(gearGeo, gearMat);
+                        gear.position.set((i-1)*1.2, 0, 0);
+                        gear.rotation.x = Math.PI / 2;
+                        gear.rotation.z = Math.random() * Math.PI;
+                        head.add(gear);
+                    }
+                    updateFn = (time) => {
+                        head.children.forEach((gear, i) => {
+                            gear.rotation.z = time * (i % 2 === 0 ? 1 : -1);
+                        });
+                        group.rotation.y = time * 0.1;
+                    };
+                    break;
+                }
+                case 'techToolbox': {
+                    const shapes = [
+                        new THREE.BoxGeometry(1, 1, 1),
+                        new THREE.SphereGeometry(0.7, 32, 16),
+                        new THREE.ConeGeometry(0.6, 1.5, 32),
+                        new THREE.TorusGeometry(0.6, 0.2, 16, 100),
+                        new THREE.OctahedronGeometry(0.8)
+                    ];
+                    shapes.forEach((geo, i) => {
+                        const mat = new THREE.MeshStandardMaterial({color: new THREE.Color().setHSL(i/shapes.length, 0.7, 0.6)});
+                        const mesh = new THREE.Mesh(geo, mat);
+                        mesh.position.set((Math.random() - 0.5) * 5, (Math.random() - 0.5) * 5, (Math.random() - 0.5) * 5);
+                        group.add(mesh);
+                    });
+                    updateFn = (time) => { group.rotation.y = time * 0.1; group.rotation.x = time * 0.15; };
+                    break;
+                }
+                 case 'justiceFoundation': {
+                    const baseGeo = new THREE.BoxGeometry(6, 0.5, 6);
+                    const baseMat = new THREE.MeshStandardMaterial({color: 0x444444, metalness: 0.2, roughness: 0.8});
+                    const base = new THREE.Mesh(baseGeo, baseMat);
+                    group.add(base);
+                    updateFn = (time) => { group.rotation.y = time * 0.05; };
+                    break;
+                }
+                case 'dualProfile': {
+                    const curve = new THREE.CatmullRomCurve3( [
+                        new THREE.Vector3( -2, -1, 0 ),
+                        new THREE.Vector3( -1, 1, 0 ),
+                        new THREE.Vector3( 1, -1, 0 ),
+                        new THREE.Vector3( 2, 1, 0 )
+                    ] );
+                    const tubeGeo = new THREE.TubeGeometry(curve, 20, 0.2, 8, false);
+                    const mat1 = new THREE.MeshStandardMaterial({color: 0x58a6ff, emissive: 0x113366});
+                    const mat2 = new THREE.MeshStandardMaterial({color: 0xffffff, emissive: 0x333333});
+                    const helix1 = new THREE.Mesh(tubeGeo, mat1);
+                    const helix2 = new THREE.Mesh(tubeGeo, mat2);
+                    helix2.rotation.z = Math.PI;
+                    group.add(helix1, helix2);
+                    updateFn = (time) => { group.rotation.y = time * 0.3; };
+                    break;
+                }
+                case 'layerModel': {
+                    for(let i=0; i<5; i++) {
+                        const planeGeo = new THREE.PlaneGeometry(5, 5);
+                        const planeMat = new THREE.MeshStandardMaterial({color: 0x58a6ff, emissive: 0x113366, transparent: true, opacity: 0.2 + i*0.05, side: THREE.DoubleSide});
+                        const plane = new THREE.Mesh(planeGeo, planeMat);
+                        plane.position.y = (i - 2) * 1.5;
+                        plane.rotation.x = -Math.PI / 2;
+                        group.add(plane);
+                    }
+                     updateFn = (time) => { group.rotation.y = time * 0.2; };
+                    break;
+                }
+                 case 'sourceLibrary': {
+                    for (let i = 0; i < 5; i++) {
+                        for (let j = 0; j < 5; j++) {
+                           const bookGeo = new THREE.BoxGeometry(0.8, 1.2, 0.1);
+                           const bookMat = new THREE.MeshStandardMaterial({color: new THREE.Color().setHSL(Math.random(), 0.5, 0.5)});
+                           const book = new THREE.Mesh(bookGeo, bookMat);
+                           book.position.set((i - 2) * 1.5, (j - 2) * 1.5, 0);
+                           group.add(book);
+                        }
+                    }
+                    updateFn = (time) => { group.rotation.y = time * 0.1; };
+                    break;
+                }
+                default: {
+                    const defaultGeo = new THREE.TorusKnotGeometry(2, 0.5, 100, 16);
+                    const defaultMat = new THREE.MeshStandardMaterial({color: 0xcccccc, emissive: 0x333333, metalness: 0.9, roughness: 0.1});
+                    const defaultObj = new THREE.Mesh(defaultGeo, defaultMat);
+                    group.add(defaultObj);
+                    updateFn = (time) => { 
+                        defaultObj.rotation.x = time * 0.2;
+                        defaultObj.rotation.y = time * 0.3;
+                    };
+                    break;
+                }
+            }
+
+            scene.add(group);
+            return {
+                update: updateFn,
+                dispose: disposeFn,
+                group: group
+            };
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            labelRenderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        function animate(time) {
+            requestAnimationFrame(animate);
+            time *= 0.001;
+
+            controls.update();
+            if(!activeNode) {
+                mainGroup.rotation.y += 0.0005;
+            }
+
+            if (activeAnimation) {
+                activeAnimation.update(time);
+                const targetPosition = new THREE.Vector3();
+                activeNode.getWorldPosition(targetPosition)
+
+                const forward = new THREE.Vector3().subVectors(camera.position, targetPosition).normalize();
+                
+                const finalPosition = targetPosition.add(forward.multiplyScalar(5));
+
+                activeAnimation.group.position.lerp(finalPosition, 0.1);
+                activeAnimation.group.lookAt(targetPosition);
+            }
+
+            renderer.render(scene, camera);
+            labelRenderer.render(scene, camera);
+        }
+
+        init();
+    </script>
+</body>
+</html>

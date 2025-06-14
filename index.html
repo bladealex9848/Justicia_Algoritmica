@@ -3,89 +3,421 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Análisis Interactivo 3D: Big Data y Justicia</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <title>Galaxia de Justicia Algorítmica</title>
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: 'Rajdhani', sans-serif;
-            background-color: #010409;
-            color: #c9d1d9;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #010409;
+            color: #e0e0e0;
             overflow: hidden;
         }
-        #info-panel {
-            background: rgba(13, 17, 23, 0.85);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(48, 54, 61, 0.8);
-            box-shadow: 0 0 30px rgba(0, 128, 255, 0.2);
-            transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
+
+        #loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(ellipse at center, #0a0a2e 0%, #16213e 50%, #0f3460 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 1s ease-in-out;
         }
-        #info-panel.hidden {
-            opacity: 0;
-            transform: translateX(100%);
+
+        #loading-screen h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            color: #00d4ff;
+            text-shadow: 0 0 10px rgba(0, 212, 255, 0.7);
         }
-        .node-label {
-            color: white;
-            text-shadow: 0 0 5px #00aaff, 0 0 10px #00aaff;
-            font-size: 16px;
-            pointer-events: none;
+
+        #loading-screen p {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            color: #ccc;
         }
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #1c2128;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #30363d;
-            border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #484f58;
-        }
-        .source-link {
-            color: #58a6ff;
-            text-decoration: none;
-            transition: color 0.3s;
-        }
-        .source-link:hover {
-            color: #80bfff;
-        }
+
         .loader {
             width: 50px;
-            aspect-ratio: 1;
+            height: 50px;
             border-radius: 50%;
-            border: 8px solid;
-            border-color: #58a6ff #0000;
-            animation: l1 1s infinite;
+            border: 5px solid rgba(0, 212, 255, 0.3);
+            border-top-color: #00d4ff;
+            animation: spin 1s infinite linear;
         }
-        @keyframes l1 {to{transform: rotate(.5turn)}}
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        #container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        #navigation {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1000;
+            background: rgba(0, 0, 0, 0.8);
+            border-radius: 15px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            max-width: 300px;
+            max-height: 80vh;
+            overflow-y: auto;
+            transform: translateX(-320px);
+            transition: transform 0.3s ease-in-out;
+        }
+
+        #navigation.visible {
+            transform: translateX(0);
+        }
+
+        #nav-toggle {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1001;
+            background: rgba(0, 0, 0, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #00d4ff;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            font-size: 20px;
+            transition: all 0.3s ease;
+        }
+
+        #nav-toggle:hover {
+            background: rgba(0, 212, 255, 0.2);
+        }
+
+        #navigation h2 {
+            color: #00d4ff;
+            margin-bottom: 15px;
+            font-size: 18px;
+            text-align: center;
+        }
+
+        .nav-category {
+            margin-bottom: 15px;
+        }
+
+        .nav-category h3 {
+            color: #ffd700;
+            font-size: 14px;
+            margin-bottom: 8px;
+            border-bottom: 1px solid rgba(255, 215, 0, 0.3);
+            padding-bottom: 3px;
+        }
+
+        .nav-item {
+            display: block;
+            color: #ccc;
+            text-decoration: none;
+            padding: 8px 12px;
+            margin: 3px 0;
+            border-radius: 8px;
+            font-size: 12px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .nav-item:hover {
+            background: rgba(0, 212, 255, 0.2);
+            color: #00d4ff;
+            transform: translateX(5px);
+        }
+
+        #info-panel {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 350px;
+            max-height: 80vh;
+            background: rgba(0, 0, 0, 0.9);
+            border-radius: 15px;
+            padding: 25px;
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            z-index: 1000;
+            display: none;
+            overflow-y: auto;
+            transform: translateX(370px);
+            transition: transform 0.3s ease-in-out;
+        }
+
+        #info-panel.visible {
+            transform: translateX(0);
+            display: block;
+        }
+
+        #info-panel h3 {
+            color: #00d4ff;
+            margin-bottom: 15px;
+            font-size: 20px;
+        }
+
+        #info-panel .category {
+            color: #ffd700;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+        }
+
+        #info-panel .content {
+            line-height: 1.6;
+            color: #e0e0e0;
+            font-size: 14px;
+        }
+
+        #info-panel .stats {
+            background: rgba(0, 212, 255, 0.1);
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+            border-left: 3px solid #00d4ff;
+        }
+
+        #info-panel .close-btn {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 24px;
+            cursor: pointer;
+            opacity: 0.7;
+            transition: opacity 0.3s;
+        }
+
+        #info-panel .close-btn:hover {
+            opacity: 1;
+        }
+
+        #controls {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+            background: rgba(0, 0, 0, 0.8);
+            border-radius: 10px;
+            padding: 15px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            justify-content: center;
+        }
+
+        #controls button {
+            background: linear-gradient(45deg, #00d4ff, #0099cc);
+            border: none;
+            color: white;
+            padding: 10px 15px;
+            margin: 0 5px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s ease;
+        }
+
+        #controls button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 212, 255, 0.4);
+        }
+
+        .tooltip {
+            position: absolute;
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            pointer-events: none;
+            z-index: 2000;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(5px);
+            display: none;
+        }
+
+        .legend {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            border-radius: 10px;
+            padding: 15px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 12px;
+            z-index: 1000;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin: 5px 0;
+        }
+
+        .legend-color {
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+
+        .label {
+            color: white;
+            font-size: 12px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 4px 8px;
+            border-radius: 4px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            pointer-events: none;
+        }
+
+        @media (max-width: 768px) {
+            #navigation, #info-panel {
+                width: calc(100vw - 40px);
+                max-width: none;
+            }
+            
+            #controls, .legend {
+                position: relative;
+                margin: 10px;
+            }
+        }
     </style>
 </head>
 <body>
-    <div id="loader-container" class="absolute inset-0 bg-[#010409] flex items-center justify-center z-50">
-        <div class="flex flex-col items-center gap-4">
-            <div class="loader"></div>
-            <p class="text-lg text-gray-400">Construyendo el entorno de análisis...</p>
-        </div>
-    </div>
-
-    <div id="main-canvas-container"></div>
-
-    <div id="info-panel" class="hidden absolute top-0 right-0 h-full w-full md:w-1/3 p-6 md:p-8 overflow-y-auto">
-        <button id="close-panel-btn" class="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors text-2xl font-bold">&times;</button>
-        <div id="info-content" class="mt-8">
-            <h2 id="info-title" class="text-2xl font-bold mb-4 text-white" style="text-shadow: 0 0 8px rgba(88, 166, 255, 0.7);"></h2>
-            <div id="info-body" class="text-base leading-relaxed"></div>
-        </div>
+    <div id="loading-screen">
+        <h1>Galaxia de Justicia Algorítmica</h1>
+        <p>Inicializando visualización del ecosistema digital judicial...</p>
+        <div class="loader"></div>
     </div>
     
-    <div id="hud" class="absolute top-4 left-4 text-white pointer-events-none">
-        <h1 class="text-3xl font-bold">Justicia y Big Data: Exploración 3D</h1>
-        <p class="text-lg text-gray-400">Seleccione un nodo para analizar el concepto.</p>
+    <div id="container"></div>
+
+    <div id="nav-toggle">☰</div>
+
+    <nav id="navigation">
+        <h2>🌌 Navegador Galáctico</h2>
+        
+        <div class="nav-category">
+            <h3>⭐ Sol y Estrellas Centrales</h3>
+            <a class="nav-item" data-target="sol-justicia">Sol de la Justicia Digital</a>
+            <a class="nav-item" data-target="estrella-big-data">Estrella de Big Data</a>
+            <a class="nav-item" data-target="estrella-ia">Estrella de IA</a>
+        </div>
+
+        <div class="nav-category">
+            <h3>🪐 Planetas (Capas del Modelo)</h3>
+            <a class="nav-item" data-target="planeta-fundacional">Capa Fundacional</a>
+            <a class="nav-item" data-target="planeta-procesal">Marco Procesal</a>
+            <a class="nav-item" data-target="planeta-aplicacion">Capa de Aplicación</a>
+            <a class="nav-item" data-target="planeta-gobernanza">Capa de Gobernanza</a>
+            <a class="nav-item" data-target="planeta-global">Perspectiva Global</a>
+        </div>
+
+        <div class="nav-category">
+            <h3>🌙 Lunas (Herramientas)</h3>
+            <a class="nav-item" data-target="luna-pretoria">Pretoria</a>
+            <a class="nav-item" data-target="luna-prisma">PRISMA</a>
+            <a class="nav-item" data-target="luna-interoperabilidad">Interoperabilidad</a>
+            <a class="nav-item" data-target="luna-prueba-novel">Prueba Novel</a>
+        </div>
+
+        <div class="nav-category">
+            <h3>☄️ Cometas y Asteroides</h3>
+            <a class="nav-item" data-target="cometa-chatgpt">Cometa ChatGPT</a>
+            <a class="nav-item" data-target="asteroide-sesgo">Asteroide del Sesgo</a>
+            <a class="nav-item" data-target="asteroide-privacidad">Asteroide Privacidad</a>
+        </div>
+
+        <div class="nav-category">
+            <h3>🌌 Nebulosas (Principios)</h3>
+            <a class="nav-item" data-target="nebulosa-debido-proceso">Debido Proceso</a>
+            <a class="nav-item" data-target="nebulosa-explicabilidad">Explicabilidad</a>
+            <a class="nav-item" data-target="nebulosa-etica">Ética Algorítmica</a>
+        </div>
+
+        <div class="nav-category">
+            <h3>📋 Cuestionario</h3>
+            <a class="nav-item" data-target="cuestionario-completo">Ver Cuestionario Completo</a>
+            <a class="nav-item" data-target="pregunta-1">Pregunta 1: Recopilación de Evidencia</a>
+            <a class="nav-item" data-target="pregunta-2">Pregunta 2: Debido Proceso</a>
+            <a class="nav-item" data-target="pregunta-3">Pregunta 3: Desafíos Regulatorios</a>
+            <a class="nav-item" data-target="pregunta-4">Pregunta 4: Control Normativo</a>
+            <a class="nav-item" data-target="pregunta-5">Pregunta 5: Beneficios</a>
+            <a class="nav-item" data-target="pregunta-6">Pregunta 6: Prueba Indiciaria</a>
+            <a class="nav-item" data-target="pregunta-7">Pregunta 7: Límites Jurídicos</a>
+            <a class="nav-item" data-target="pregunta-8">Pregunta 8: Método Autónomo</a>
+            <a class="nav-item" data-target="pregunta-9">Pregunta 9: Causalidad</a>
+            <a class="nav-item" data-target="pregunta-10">Pregunta 10: Derecho a la Defensa</a>
+            <a class="nav-item" data-target="pregunta-11">Pregunta 11: Función Judicial</a>
+            <a class="nav-item" data-target="pregunta-12">Pregunta 12: Herramientas</a>
+            <a class="nav-item" data-target="pregunta-13">Pregunta 13: Elementos Probatorios</a>
+        </div>
+    </nav>
+
+    <div id="info-panel">
+        <button class="close-btn">&times;</button>
+        <div class="category"></div>
+        <h3></h3>
+        <div class="content"></div>
     </div>
+
+    <div id="controls">
+        <button id="reset-view-btn">🏠 Vista Inicial</button>
+        <button id="toggle-animation-btn">⏯️ Animación</button>
+        <button id="toggle-labels-btn">🏷️ Etiquetas</button>
+        <button id="overview-btn">📊 Resumen</button>
+    </div>
+
+    <div class="legend">
+        <div class="legend-item">
+            <div class="legend-color" style="background: #ffff00;"></div>
+            <span>Sol y Estrellas (Conceptos Centrales)</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background: #4169e1;"></div>
+            <span>Planetas (Capas del Modelo)</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background: #87ceeb;"></div>
+            <span>Lunas (Herramientas)</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background: #ff6347;"></div>
+            <span>Cometas/Asteroides (Desafíos)</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background: #9370db;"></div>
+            <span>Nebulosas (Principios)</span>
+        </div>
+    </div>
+
+    <div class="tooltip"></div>
 
     <script type="importmap">
         {
@@ -95,553 +427,1667 @@
             }
         }
     </script>
-
     <script type="module">
+        console.log("Script principal cargado.");
         import * as THREE from 'three';
         import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
         import { CSS2DObject, CSS2DRenderer } from 'three/addons/renderers/CSS2DRenderer.js';
+        import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+        import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+        import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+        import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
+        import { SSAOPass } from 'three/addons/postprocessing/SSAOPass.js';
+        
+        // Log para depuración
+        console.log("Módulos importados correctamente");
 
-        const contentData = {
-            q1: {
-                title: "¿Ha cambiado la recopilación y análisis de evidencia?",
-                text: "Absolutamente. El cambio es radical y va más allá de una simple modernización. Hemos pasado de un mundo de escasez de pruebas físicas a uno de sobreabundancia de datos digitales. La \"escena del crimen\" ahora es también el dominio digital: la nube, los registros de un GPS, las transacciones o la actividad en redes sociales. El análisis ya no es solo una revisión humana y lineal; ahora es algorítmico, capaz de procesar volúmenes masivos de información para encontrar patrones y correlaciones que serían invisibles para nosotros. Esto no es hacer lo de siempre más rápido, es hacer algo completamente nuevo: extraer conocimiento de datos dispersos para reconstruir hechos.",
-                animation: 'digitalVortex'
+        // Datos del modelo de la galaxia
+        const galaxyData = {
+            // Sol central - Justicia Digital
+            'sol-justicia': {
+                type: 'sol',
+                title: 'Sol de la Justicia Digital Colombiana',
+                category: 'Núcleo Central',
+                position: [0, 0, 0],
+                size: 8,
+                color: '#ffff00',
+                content: `
+                    <p><strong>El centro de nuestro ecosistema judicial</strong> - La transformación digital representa un rediseño fundamental de los procesos y principios que sustentan la administración de justicia en Colombia.</p>
+                    
+                    <div class="stats">
+                        <strong>Impacto Transformacional:</strong><br>
+                        • Transición acelerada por la crisis sanitaria<br>
+                        • Redefinición de procesos tradicionales<br>
+                        • Integración de IA en decisiones judiciales<br>
+                        • Nuevo paradigma tecnológico-jurídico
+                    </div>
+                    
+                    <p>Este sol irradia energía hacia todos los demás elementos del sistema, representando cómo la digitalización afecta cada aspecto de la justicia colombiana, desde la infraestructura de datos hasta el marco de gobernanza global.</p>
+                `
             },
-            q2: {
-                title: "¿Qué principios del debido proceso son impactados?",
-                text: "El impacto es directo y profundo sobre las garantías más sagradas del debido proceso. El derecho a la defensa y a la contradicción se ve amenazado cuando nos enfrentamos a algoritmos de \"caja negra\" que no podemos interrogar. La presunción de inocencia se pone en riesgo con sistemas predictivos que pueden generar un sesgo de \"culpabilidad futura\" en el juzgador. La imparcialidad judicial puede ser socavada por sesgos algorítmicos que perpetúan discriminaciones sistémicas sin que el juez sea consciente de ello. Finalmente, el derecho a una decisión motivada se vulnera si un fallo se basa en un resultado computacional que no puede ser explicado lógicamente en términos jurídicos.",
-                animation: 'imbalancedScales'
+            
+            // Estrellas - Conceptos centrales
+            'estrella-big-data': {
+                type: 'star',
+                title: 'Estrella de Big Data',
+                category: 'Concepto Central',
+                position: [15, 5, -10],
+                size: 6,
+                color: '#ffd700',
+                content: `
+                    <p><strong>La fuente de energía informacional</strong> - Colombia genera un volumen masivo de datos digitales que alimenta todo el ecosistema de justicia digital.</p>
+                    
+                    <div class="stats">
+                        <strong>Estadísticas de Conectividad 2024:</strong><br>
+                        • 9.09 millones de accesos fijos a internet<br>
+                        • 49+ millones de accesos móviles<br>
+                        • 77.02 millones de conexiones móviles activas<br>
+                        • +24.7% aumento en velocidad de conexión
+                    </div>
+                    
+                    <p>Esta estrella representa el CONPES 3920 - Política Nacional de Explotación de Datos, que busca tratar los datos como un activo estratégico para generar valor social y económico.</p>
+                `
             },
-            q3: {
-                title: "¿Desafíos regulatorios en Colombia?",
-                text: "Desde el punto de vista regulatorio, los desafíos son enormes. Primero, necesitamos adaptar nuestras normas probatorias, diseñadas para pruebas tangibles, a una evidencia que es por naturaleza probabilística y algorítmica. Segundo, es urgente crear una gobernanza de datos clara que equilibre la necesidad investigativa del Estado con el derecho a la privacidad y al habeas data. Tercero, debemos establecer estándares técnicos mínimos de transparencia y explicabilidad para los algoritmos. Y, por último, un desafío crucial es la capacitación y acreditación de jueces, fiscales y abogados para que puedan interactuar con estas tecnologías de forma crítica y competente.",
-                animation: 'regulatoryMaze'
+            'estrella-ia': {
+                type: 'star',
+                title: 'Estrella de Inteligencia Artificial',
+                category: 'Concepto Central',
+                position: [-15, 8, -12],
+                size: 5.5,
+                color: '#ffa500',
+                content: `
+                    <p><strong>El motor de transformación</strong> - La IA representa el cambio cualitativo en la forma en que se procesa la información judicial, pasando del análisis humano a la automatización inteligente.</p>
+                    
+                    <div class="stats">
+                        <strong>Impacto en el Sistema Judicial:</strong><br>
+                        • 30% de servidores judiciales ya utilizan IA<br>
+                        • 91% considera necesarios lineamientos oficiales<br>
+                        • Potencial de aumento de eficiencia del 900%<br>
+                        • Nuevos desafíos éticos y jurídicos
+                    </div>
+                    
+                    <p>La IA está transformando desde la gestión administrativa hasta el análisis de riesgo criminal, generando tanto eficiencias notables como controversias éticas profundas.</p>
+                `
             },
-            q4: {
-                title: "¿Existe un control normativo que garantice la legalidad?",
-                text: "Actualmente, no tenemos una ley específica e integral. El control normativo es un mosaico de normas preexistentes que aplicamos de forma indirecta. La principal vía de control es a través de las reglas de la prueba pericial y la prueba novel del Código de Procedimiento Penal (Art. 422), que exige demostrar la fiabilidad científica de una técnica. También aplicamos la Ley 1581 de 2012 sobre protección de datos como un límite fundamental. Y aunque el Consejo Superior de la Judicatura ha emitido lineamientos éticos muy importantes (Acuerdo PCSJA24-12243), estos son \"soft law\", es decir, directrices sin fuerza de ley vinculante. En resumen, la regulación es fragmentaria y deja vacíos que generan incertidumbre.",
-                animation: 'patchworkLaw'
+            
+            // Planetas - Capas del modelo conceptual
+            'planeta-fundacional': {
+                type: 'planet',
+                title: 'Capa Fundacional: Datos e Infraestructura',
+                category: 'Primera Capa del Modelo',
+                position: [20, 0, 15],
+                size: 4.5,
+                color: '#4169e1',
+                content: `
+                    <p><strong>La base sólida del sistema</strong> - Toda iniciativa de justicia digital se sustenta sobre una infraestructura de datos robusta y interoperable.</p>
+                    
+                    <div class="stats">
+                        <strong>Desafío Principal:</strong><br>
+                        Fragmentación de datos en "silos" institucionales
+                    </div>
+                    
+                    <p><strong>Soluciones Implementadas:</strong></p>
+                    <ul>
+                        <li>Agencia Nacional Digital (AND) como articuladora</li>
+                        <li>Marco de Interoperabilidad del MinTIC</li>
+                        <li>Decreto 088 de 2022 - Digitalización obligatoria</li>
+                        <li>Plataforma "Carpeta Ciudadana"</li>
+                    </ul>
+                    
+                    <p>Sin una base de datos coherente y completa, las herramientas de IA más avanzadas producirán resultados erróneos o sesgados.</p>
+                `
             },
-            q5: {
-                title: "¿Beneficios del análisis masivo de datos?",
-                text: "Los beneficios son significativos, siempre que se usen con cautela. El análisis masivo de datos nos permite identificar patrones delictivos y modus operandi al conectar información que antes estaba aislada en diferentes bases de datos. Facilita el análisis de vínculos entre personas, lugares y eventos que a simple vista no parecen relacionados, haciendo las investigaciones más eficientes. Además, es una herramienta poderosa para enriquecer y verificar otras pruebas; por ejemplo, una coartada puede ser corroborada o desmentida al contrastarla con registros de geolocalización o transacciones financieras. La policía predictiva es otra área de beneficio potencial, pero debe manejarse con extrema precaución por el alto riesgo de amplificar sesgos históricos y discriminación.",
-                animation: 'networkGraph'
+            'planeta-procesal': {
+                type: 'planet',
+                title: 'Capa Procesal: Adaptación Jurídica',
+                category: 'Segunda Capa del Modelo',
+                position: [-20, 5, 10],
+                size: 4.8,
+                color: '#228b22',
+                content: `
+                    <p><strong>Adaptando el derecho a la era digital</strong> - El sistema legal colombiano adapta ingeniosamente sus conceptos tradicionales para evaluar evidencia algorítmica.</p>
+                    
+                    <div class="stats">
+                        <strong>Transformación de la Prueba Indiciaria:</strong><br>
+                        • Hecho Indicador: De único a "constelación de micro-datos"<br>
+                        • Regla de Experiencia: Complementada por reglas algorítmicas<br>
+                        • Inferencia: De cualitativa a probabilística cuantificable
+                    </div>
+                    
+                    <p><strong>Marco Regulatorio:</strong></p>
+                    <ul>
+                        <li>Art. 422 Ley 906/2004 - Prueba Novel (Daubert Test)</li>
+                        <li>Art. 29 Constitución - Regla de Exclusión</li>
+                        <li>Clasificación como prueba pericial especializada</li>
+                    </ul>
+                `
             },
-            q6: {
-                title: "¿Cómo contribuye el Big Data a la prueba indiciaria?",
-                text: "El Big Data no solo potencia la prueba indiciaria, sino que la reconfigura estructuralmente. Primero, transforma el hecho indicador: ya no es un hecho único y probado (como \"el acusado huyó\"), sino una constelación de miles de micro-indicadores digitales cuyo patrón colectivo es estadísticamente significativo. Segundo, revoluciona el proceso de inferencia: la \"regla de la experiencia\" del juez, basada en el sentido común, es complementada o reemplazada por una \"regla algorítmica\" derivada del análisis estadístico. Esto nos permite pasar de una inferencia cualitativa a una conclusión con un grado de probabilidad cuantificable, fortaleciendo enormemente la robustez del indicio.",
-                animation: 'indiciumTransform'
+            'planeta-aplicacion': {
+                type: 'planet',
+                title: 'Capa de Aplicación: IA en Acción',
+                category: 'Tercera Capa del Modelo',
+                position: [10, -10, -20],
+                size: 5,
+                color: '#ff4500',
+                content: `
+                    <p><strong>La IA como realidad operativa</strong> - Herramientas de inteligencia artificial ya transforman la gestión judicial y el análisis de riesgo criminal.</p>
+                    
+                    <div class="stats">
+                        <strong>Casos de Éxito:</strong><br>
+                        • Pretoria (Corte Constitucional): +900% eficiencia<br>
+                        • Análisis de 2,500+ sentencias diarias<br>
+                        • Optimización en selección de tutelas
+                    </div>
+                    
+                    <p><strong>Aplicaciones Actuales:</strong></p>
+                    <ul>
+                        <li>Automatización administrativa</li>
+                        <li>Clasificación y análisis de casos</li>
+                        <li>Predicción de riesgo (PRISMA)</li>
+                        <li>Asistencia en redacción (ChatGPT)</li>
+                    </ul>
+                    
+                    <p><strong>Principio Fundamental:</strong> La IA es siempre una herramienta; la responsabilidad final recae indelegablemente en el juez humano.</p>
+                `
             },
-             q7: {
-                title: "¿Límites jurídicos en la utilización de datos de IA?",
-                text: "Los límites son claros e infranqueables: los derechos fundamentales. Ninguna eficiencia tecnológica puede justificar la vulneración del debido proceso, la presunción de inocencia, la intimidad o la igualdad. Otro límite es el principio de legalidad probatoria: los datos base deben ser obtenidos lícitamente, de lo contrario, la prueba es nula. Además, su uso debe regirse por los principios de necesidad y proporcionalidad. Y, finalmente, un límite emergente y crucial es el principio de explicabilidad: una conclusión basada en un algoritmo de \"caja negra\" que no puede ser explicado y, por tanto, contradicho, sería inconstitucional por falta de motivación.",
-                animation: 'glowingBoundaries'
+            'planeta-gobernanza': {
+                type: 'planet',
+                title: 'Capa de Gobernanza: Ética y Regulación',
+                category: 'Cuarta Capa del Modelo',
+                position: [-18, -8, -15],
+                size: 4.2,
+                color: '#800080',
+                content: `
+                    <p><strong>El marco ético y regulatorio</strong> - Normas, principios éticos y requisitos técnicos que rigen el diseño e implementación de herramientas digitales.</p>
+                    
+                    <div class="stats">
+                        <strong>Acuerdo PCSJA24-12243 (2024):</strong><br>
+                        • 30% de servidores ya usa IA<br>
+                        • 91% considera necesarios lineamientos oficiales
+                    </div>
+                    
+                    <p><strong>Principios Fundamentales:</strong></p>
+                    <ul>
+                        <li>Respeto a derechos fundamentales</li>
+                        <li>No discriminación</li>
+                        <li>Calidad y seguridad de datos</li>
+                        <li>Transparencia y explicabilidad</li>
+                        <li>Control del usuario (supremacía humana)</li>
+                    </ul>
+                    
+                    <p>Incluye deberes específicos para servidores judiciales y requisitos técnicos para herramientas de IA.</p>
+                `
             },
-            q8: {
-                title: "¿Prueba autónoma o complementaria?",
-                text: "En el estado actual de la tecnología y el derecho, debe ser considerado un método de prueba complementario, no autónomo. Un resultado algorítmico por sí solo no es una prueba plena; es un elemento material probatorio que debe ser introducido al proceso a través de una prueba pericial que valide su metodología y fiabilidad. Su valoración debe hacerse siempre en conjunto con las demás pruebas del expediente, bajo las reglas de la sana crítica. Una condena no podría sustentarse exclusivamente en un hallazgo algorítmico. A futuro, con la estandarización y certificación, podría ganar autonomía, como ocurrió con la prueba de ADN, pero hoy no estamos en ese punto.",
-                animation: 'supportPillars'
+            'planeta-global': {
+                type: 'planet',
+                title: 'Capa Global: Perspectiva Internacional',
+                category: 'Quinta Capa del Modelo',
+                position: [0, 15, 20],
+                size: 4,
+                color: '#00bfff',
+                content: `
+                    <p><strong>Colombia en la arena internacional</strong> - Las iniciativas de Colombia se alinean con estándares éticos internacionales, pero su enfoque regulatorio de "soft law" difiere de modelos más estrictos.</p>
+                    
+                    <div class="stats">
+                        <strong>Comparación Regulatoria:</strong><br>
+                        • UE: "Hard Law" (Ley de IA, alto riesgo)<br>
+                        • Brasil: Mixto (Proyecto de Ley, regulación CNJ)<br>
+                        • Colombia: "Soft Law" (Acuerdo PCSJA24-12243)
+                    </div>
+                    
+                    <p>La trayectoria de Colombia se sitúa actualmente en el campo del "soft law", planteando un debate estratégico sobre la necesidad de evolucionar hacia un marco legalmente vinculante.</p>
+                `
             },
-            q9: {
-                title: "¿Cómo se establece la causalidad?",
-                text: "Este es el \"talón de Aquiles\" del Big Data. Los algoritmos son excelentes para encontrar correlaciones, pero son incapaces de establecer causalidad por sí mismos. Un algoritmo puede decirnos que dos eventos ocurren juntos, pero no por qué. Por lo tanto, establecer esa relación de causalidad es una tarea intelectual que recae exclusivamente en el juez, en un proceso de dos pasos: primero, una validación técnica a través de un perito que explique la fiabilidad de la correlación encontrada. Y segundo, una validación jurídico-lógica, donde el juez integra esa correlación en una narrativa coherente con el resto de las pruebas, aplicando las reglas de la experiencia y la sana crítica para construir el nexo causal. El algoritmo da el \"qué\", el juez debe construir el \"porqué\".",
-                animation: 'causalityLink'
+            
+            // Lunas - Herramientas y conceptos específicos
+            'luna-pretoria': {
+                type: 'moon',
+                title: 'Luna Pretoria',
+                category: 'Herramienta de Eficiencia',
+                position: [12, -12, -18],
+                size: 1.5,
+                color: '#87ceeb',
+                content: `
+                    <p><strong>El motor de eficiencia judicial</strong> - Sistema de IA de la Corte Constitucional basado en el modelo argentino Prometea.</p>
+                    
+                    <div class="stats">
+                        <strong>Capacidades:</strong><br>
+                        • Analiza 2,500+ sentencias diarias<br>
+                        • Agrupa y clasifica automáticamente<br>
+                        • Identifica patrones y temas recurrentes<br>
+                        • +900% aumento en eficiencia de gestión
+                    </div>
+                    
+                    <p><strong>Beneficios:</strong></p>
+                    <ul>
+                        <li>Fortalece coherencia del precedente judicial</li>
+                        <li>Optimiza proceso de selección de tutelas</li>
+                        <li>Libera tiempo para análisis jurídico de fondo</li>
+                        <li>Reduce tareas de clasificación masiva</li>
+                    </ul>
+                    
+                    <p>Representa la visión de la IA como asistente administrativo que apoya pero no reemplaza la labor judicial.</p>
+                `
             },
-            q10: {
-                title: "¿Afectación al derecho de defensa y contradicción?",
-                text: "La afectación es gravísima. Genera una profunda asimetría de armas, donde el Estado cuenta con herramientas de análisis que la defensa, especialmente la pública, no puede igualar. Más importante aún, anula casi por completo la contradicción efectiva. ¿Cómo se contrainterroga a un algoritmo? Para hacerlo, la defensa necesitaría acceso al código fuente, a los datos de entrenamiento y a la metodología, información que suele estar protegida por secretos comerciales. Sin poder auditar y cuestionar el proceso que generó el resultado, el derecho a la contradicción se convierte en una formalidad vacía, una ilusión.",
-                animation: 'blackBoxDefense'
+            'luna-prisma': {
+                type: 'moon',
+                title: 'Luna PRISMA',
+                category: 'Justicia Predictiva',
+                position: [8, -14, -12],
+                size: 1.8,
+                color: '#ff6347',
+                content: `
+                    <p><strong>El dilema de la justicia predictiva</strong> - Herramienta de la Fiscalía para predecir probabilidad de reincidencia criminal.</p>
+                    
+                    <div class="stats">
+                        <strong>Objetivos Declarados:</strong><br>
+                        • Uso eficiente de cupos carcelarios<br>
+                        • Reducción de congestión carcelaria<br>
+                        • Detención preventiva para alto riesgo
+                    </div>
+                    
+                    <p><strong>Controversias Éticas:</strong></p>
+                    <ul>
+                        <li>Riesgo de sesgo algorítmico (caso COMPAS)</li>
+                        <li>Discriminación por proxy</li>
+                        <li>Perpetuación de sesgos sistémicos</li>
+                        <li>Falta de auditoría transparente</li>
+                    </ul>
+                    
+                    <p>Aunque excluye variables sociodemográficas explícitas, puede amplificar discriminación histórica a través de datos "objetivos" correlacionados.</p>
+                `
             },
-            q11: {
-                title: "¿Transformación de la función judicial?",
-                text: "Sí, sin duda puede acelerar la toma de decisiones, como ya lo demuestran herramientas como Pretoria en la Corte Constitucional, que automatizan tareas de clasificación y gestión. Sin embargo, la independencia judicial enfrenta un riesgo sutil: la dependencia cognitiva. El peligro no es que un robot reemplace al juez, sino que el juez, abrumado por la carga laboral, comience a aceptar acríticamente las recomendaciones del algoritmo, un fenómeno conocido como \"sesgo de automatización\". Esto erosionaría el juicio independiente. Por ello, el principio rector es que la IA debe ser siempre una herramienta de apoyo, pero la responsabilidad y la decisión final deben permanecer, indelegablemente, en el ser humano.",
-                animation: 'cognitiveAutomation'
+            'luna-interoperabilidad': {
+                type: 'moon',
+                title: 'Luna Interoperabilidad',
+                category: 'Integración Técnica',
+                position: [22, 2, 12],
+                size: 1.3,
+                color: '#00ced1',
+                content: `
+                    <p><strong>Conectando los silos de datos</strong> - Iniciativas para integrar sistemas fragmentados del Estado colombiano.</p>
+                    
+                    <div class="stats">
+                        <strong>Problema:</strong><br>
+                        Entidades operan en "silos" con sistemas heredados incapaces de comunicarse
+                    </div>
+                    
+                    <p><strong>Soluciones Técnicas:</strong></p>
+                    <ul>
+                        <li>Marco de Interoperabilidad MinTIC</li>
+                        <li>Estándares abiertos obligatorios</li>
+                        <li>Plataforma de intercambio de información</li>
+                        <li>APIs estandarizadas</li>
+                    </ul>
+                    
+                    <p><strong>Impacto:</strong> La calidad de análisis de IA depende directamente de la completitud y calidad de datos interoperables.</p>
+                `
             },
-            q12: {
-                title: "¿Herramientas para fortalecer la recolección y análisis?",
-                text: "Debemos priorizar tecnologías que incorporen garantías \"por diseño\". Por ejemplo, herramientas de Inteligencia Artificial Explicable (XAI), que no sean \"cajas negras\" y puedan justificar sus resultados, como ya lo sugieren las directrices del Consejo Superior. También es clave el software de cadena de custodia digital, que crea un registro inalterable de cada interacción con la evidencia digital para garantizar su integridad. Asimismo, las plataformas de Inteligencia de Fuentes Abiertas (OSINT) son muy útiles, pero deben tener salvaguardas éticas para no convertirse en herramientas de vigilancia masiva. Finalmente, las plataformas de análisis federado permiten analizar datos sin centralizarlos, protegiendo mejor la privacidad.",
-                animation: 'techToolbox'
+            'luna-prueba-novel': {
+                type: 'moon',
+                title: 'Luna Prueba Novel',
+                category: 'Marco Legal',
+                position: [-22, 7, 8],
+                size: 1.4,
+                color: '#dda0dd',
+                content: `
+                    <p><strong>El filtro de admisibilidad científica</strong> - Art. 422 Ley 906/2004 regula evidencia basada en técnicas científicas novedosas.</p>
+                    
+                    <div class="stats">
+                        <strong>Criterios Daubert Test:</strong><br>
+                        • Verificación empírica de la teoría<br>
+                        • Publicación y revisión por pares<br>
+                        • Conocimiento de tasa de error<br>
+                        • Aceptación en comunidad experta
+                    </div>
+                    
+                    <p><strong>Proceso de Incorporación:</strong></p>
+                    <ol>
+                        <li>Audiencia preparatoria robusta</li>
+                        <li>Práctica a través de perito humano</li>
+                        <li>Valoración bajo sana crítica</li>
+                    </ol>
+                    
+                    <p>Evita que procesos se inunden de "cajas negras" algorítmicas de fiabilidad desconocida.</p>
+                `
             },
-            q13: {
-                title: "¿Elementos para garantizar legalidad e imparcialidad?",
-                text: "Para garantizar un debido proceso robusto, combinaría elementos probatorios y tecnológicos. El elemento probatorio central sería un Informe Pericial de Validación Algorítmica obligatorio, que detalle el modelo, los datos, las tasas de error y una auditoría de sesgos. Tecnológicamente, implementaría entornos de prueba seguros (sandboxing) para que la defensa pueda auditar los algoritmos de la acusación. También usaría tecnología de registros inmutables (como blockchain) para crear una traza auditable de todo el proceso analítico. Pero el elemento más crucial no es tecnológico, sino humano: una inversión seria y continua en la capacitación de jueces, fiscales y defensores para que sean consumidores críticos, y no pasivos, de estas tecnologías.",
-                animation: 'justiceFoundation'
+            
+            // Cometas - Tecnologías emergentes
+            'cometa-chatgpt': {
+                type: 'comet',
+                title: 'Cometa ChatGPT',
+                category: 'IA Generativa',
+                position: [25, 10, -5],
+                size: 1.2,
+                color: '#ff69b4',
+                content: `
+                    <p><strong>La nueva frontera de IA generativa</strong> - Uso emergente de modelos de lenguaje en redacción de sentencias judiciales.</p>
+                    
+                    <div class="stats">
+                        <strong>Casos Documentados:</strong><br>
+                        Jueces colombianos usando ChatGPT para apoyo en redacción y estructuración de argumentos
+                    </div>
+                    
+                    <p><strong>Cambio Cualitativo:</strong></p>
+                    <ul>
+                        <li>De IA que analiza datos a IA que genera contenido</li>
+                        <li>Apariencia de razonamiento jurídico</li>
+                        <li>Riesgo de dependencia cognitiva</li>
+                    </ul>
+                    
+                    <p><strong>Imperativo del Control Humano:</strong> El resultado algorítmico es solo un insumo que el juez debe analizar, verificar y validar con su criterio.</p>
+                `
             },
-            profile: {
-                title: "Perfil Profesional: Alexander Oviedo Fadul",
-                text: "Abogado e Ingeniero de Sistemas con especialización en Inteligencia de Negocios, Big Data y LegalTech. Mi trayectoria híbrida busca activamente cerrar la brecha entre el derecho y la tecnología, aplicando conocimientos en desarrollo full-stack, análisis de datos e IA para crear soluciones innovadoras dentro de la Rama Judicial. Actualmente, como Profesional Universitario en el Consejo Seccional de la Judicatura de Sucre, mi rol se centra en la implementación de políticas de modernización, enfrentando los desafíos prácticos de la transformación digital en el terreno. Esta perspectiva dual, informada por la experiencia técnica y la realidad administrativa, fundamenta el análisis presentado.",
-                animation: 'dualProfile'
+            
+            // Asteroides - Desafíos y riesgos
+            'asteroide-sesgo': {
+                type: 'asteroid',
+                title: 'Asteroide del Sesgo',
+                category: 'Riesgo Ético',
+                position: [-25, -10, 8],
+                size: 1,
+                color: '#dc143c',
+                content: `
+                    <p><strong>La amenaza invisible del sesgo algorítmico</strong> - Riesgo de perpetuar y amplificar discriminaciones sistémicas bajo apariencia de objetividad.</p>
+                    
+                    <div class="stats">
+                        <strong>Caso COMPAS (EE.UU.):</strong><br>
+                        • Sesgo racial en predicciones<br>
+                        • Doble tasa de error para población negra<br>
+                        • Falsos positivos sistemáticos
+                    </div>
+                    
+                    <p><strong>Tipos de Sesgo:</strong></p>
+                    <ul>
+                        <li>Sesgo en datos de entrenamiento</li>
+                        <li>Discriminación por proxy</li>
+                        <li>Sesgo de confirmación</li>
+                        <li>Sesgo de automatización</li>
+                    </ul>
+                    
+                    <p>Los algoritmos aprenden, codifican y amplifican la discriminación histórica presente en los datos.</p>
+                `
             },
-            model: {
-                title: "Modelo Conceptual de 5 Capas",
-                text: "Para entender la transformación digital, propongo un modelo de cinco capas interconectadas: 1. **Fundacional**: La infraestructura de datos e interoperabilidad. 2. **Procesal**: La adaptación del derecho probatorio a la evidencia algorítmica. 3. **Aplicación**: Las herramientas de IA en uso, como Pretoria y PRISMA. 4. **Gobernanza**: El marco ético y regulatorio, liderado por el Acuerdo PCSJA24-12243. 5. **Global**: La posición de Colombia en el escenario regulatorio internacional. Cada capa depende de la anterior, formando un ecosistema complejo.",
-                animation: 'layerModel'
+            'asteroide-privacidad': {
+                type: 'asteroid',
+                title: 'Asteroide Privacidad',
+                category: 'Derechos Fundamentales',
+                position: [22, -15, 18],
+                size: 1.1,
+                color: '#b22222',
+                content: `
+                    <p><strong>La tensión entre eficiencia e intimidad</strong> - Conflicto entre capacidad investigativa del Estado y protección de derechos fundamentales.</p>
+                    
+                    <div class="stats">
+                        <strong>Marco Legal:</strong><br>
+                        • Ley 1581/2012 - Protección de Datos<br>
+                        • Art. 29 Constitución - Regla de Exclusión<br>
+                        • Habeas Data como derecho fundamental
+                    </div>
+                    
+                    <p><strong>Riesgos:</strong></p>
+                    <ul>
+                        <li>Vigilancia masiva encubierta</li>
+                        <li>Perfilado sin consentimiento</li>
+                        <li>Violación de secreto de comunicaciones</li>
+                        <li>Uso indebido de datos personales</li>
+                    </ul>
+                    
+                    <p>Cualquier evidencia obtenida violando el debido proceso es nula de pleno derecho.</p>
+                `
             },
-            sources: {
-                title: "Fuentes Consultadas",
-                text: `<ul class="list-disc list-inside space-y-2">
-                    <li>[1] Perfil de LinkedIn de Alexander Oviedo Fadul</li>
-                    <li>[2] Sitio Web 'alexanderoviedofadul.dev'</li>
-                    <li>[3] Publicaciones y proyectos mencionados en las fuentes 1 y 2.</li>
-                    <li>[4] Ley 270 de 1996 - Ley Estatutaria de la Administración de Justicia.</li>
-                    <li>[5] Jurisprudencia de la Corte Constitucional y Consejo de Estado sobre funciones de los Consejos Seccionales.</li>
-                    <li>...y más de 80 otras fuentes académicas, legales y técnicas detalladas en el informe original.</li>
-                </ul>
-                <p class="mt-4">Nota: Esta es una lista resumida. La investigación completa se basa en un cuerpo de fuentes mucho más extenso.</p>`,
-                animation: 'sourceLibrary'
+            
+            // Nebulosas - Principios éticos y jurídicos
+            'nebulosa-debido-proceso': {
+                type: 'nebula',
+                title: 'Nebulosa del Debido Proceso',
+                category: 'Principio Fundamental',
+                position: [-30, 12, -25],
+                size: 6,
+                color: '#9370db',
+                content: `
+                    <p><strong>La garantía constitucional envolvente</strong> - Principios fundamentales que deben protegerse en la era del Big Data judicial.</p>
+                    
+                    <div class="stats">
+                        <strong>Garantías Amenazadas:</strong><br>
+                        • Derecho a la defensa y contradicción<br>
+                        • Presunción de inocencia<br>
+                        • Imparcialidad judicial<br>
+                        • Decisión motivada
+                    </div>
+                    
+                    <p><strong>Desafíos Específicos:</strong></p>
+                    <ul>
+                        <li>Algoritmos de "caja negra" no interrogables</li>
+                        <li>Sesgo de "culpabilidad futura"</li>
+                        <li>Sesgos algorítmicos inconscientes</li>
+                        <li>Fallos basados en resultados inexplicables</li>
+                    </ul>
+                    
+                    <p>Ninguna eficiencia tecnológica puede justificar la vulneración de estas garantías fundamentales.</p>
+                `
+            },
+            'nebulosa-explicabilidad': {
+                type: 'nebula',
+                title: 'Nebulosa de Explicabilidad',
+                category: 'Transparencia Algorítmica',
+                position: [30, -18, 15],
+                size: 5,
+                color: '#4b0082',
+                content: `
+                    <p><strong>La exigencia de transparencia algorítmica</strong> - Principio emergente que exige que las decisiones algorítmicas puedan ser explicadas y contradichas.</p>
+                    
+                    <div class="stats">
+                        <strong>Técnicas XAI:</strong><br>
+                        • LIME (Local Interpretable Model-agnostic Explanations)<br>
+                        • SHAP (SHapley Additive exPlanations)<br>
+                        • Árboles de decisión interpretables
+                    </div>
+                    
+                    <p><strong>Requisitos Legales:</strong></p>
+                    <ul>
+                        <li>Motivación de decisiones judiciales</li>
+                        <li>Derecho a la contradicción efectiva</li>
+                        <li>Transparencia en procesos públicos</li>
+                        <li>Auditoría de algoritmos</li>
+                    </ul>
+                    
+                    <p>Una conclusión basada en algoritmo inexplicable sería inconstitucional por falta de motivación.</p>
+                `
+            },
+            'nebulosa-etica': {
+                type: 'nebula',
+                title: 'Nebulosa de Ética Algorítmica',
+                category: 'Principios Rectores',
+                position: [0, 25, -20],
+                size: 5.5,
+                color: '#8a2be2',
+                content: `
+                    <p><strong>El marco valorativo de la IA judicial</strong> - Conjunto de principios éticos que deben guiar el diseño, implementación y uso de la IA en la justicia.</p>
+                    
+                    <div class="stats">
+                        <strong>Principios Fundamentales:</strong><br>
+                        • Respeto a la dignidad humana<br>
+                        • No discriminación<br>
+                        • Transparencia y explicabilidad<br>
+                        • Responsabilidad y rendición de cuentas
+                    </div>
+                    
+                    <p><strong>Estándares Internacionales:</strong></p>
+                    <ul>
+                        <li>Carta Ética del Consejo de Europa</li>
+                        <li>Principios de IA de la OCDE</li>
+                        <li>Recomendaciones de UNESCO</li>
+                        <li>Ley de IA de la Unión Europea</li>
+                    </ul>
+                    
+                    <p>La ética no es un complemento opcional, sino un requisito estructural para la legitimidad de la IA en la justicia.</p>
+                `
             }
         };
 
-        let scene, camera, renderer, labelRenderer, controls;
-        let mainGroup;
-        const nodes = [];
-        let activeAnimation = null;
-        let activeNode = null;
+        // Añadir datos del cuestionario - Preguntas 1-5
+        galaxyData['pregunta-1'] = {
+            type: 'question',
+            title: 'Pregunta 1: Recopilación de Evidencia',
+            category: 'Cuestionario - Pregunta',
+            position: [40, 15, -30],
+            size: 2.2,
+            color: '#3498db',
+            orbitParams: {
+                semiMajorAxis: 45,
+                semiMinorAxis: 35,
+                eccentricity: 0.3,
+                inclination: 0.2,
+                speed: 0.0003,
+                phase: 0
+            },
+            content: `
+                <p><strong>¿Cree usted que ha cambiado la forma en que se recopila y analiza la evidencia en los procesos judiciales con el uso de nuevas tecnologías?</strong></p>
+                <p>Absolutamente. El cambio es radical y va más allá de una simple modernización. Hemos pasado de un mundo de escasez de pruebas físicas a uno de sobreabundancia de datos digitales. La "escena del crimen" ahora es también el dominio digital: la nube, los registros de un GPS, las transacciones o la actividad en redes sociales. El análisis ya no es solo una revisión humana y lineal; ahora es algorítmico, capaz de procesar volúmenes masivos de información para encontrar patrones y correlaciones que serían invisibles para nosotros. Esto no es hacer lo de siempre más rápido, es hacer algo completamente nuevo: extraer conocimiento de datos dispersos para reconstruir hechos.</p>
+            `
+        };
 
+        galaxyData['pregunta-2'] = {
+            type: 'question',
+            title: 'Pregunta 2: Debido Proceso',
+            category: 'Cuestionario - Pregunta',
+            position: [38, 12, -28],
+            size: 2.2,
+            color: '#3498db',
+            orbitParams: {
+                semiMajorAxis: 42,
+                semiMinorAxis: 34,
+                eccentricity: 0.25,
+                inclination: 0.15,
+                speed: 0.00035,
+                phase: 0.5
+            },
+            content: `
+                <p><strong>¿Qué principios del debido proceso pueden verse impactados por el uso de tecnologías de análisis masivo de datos como lo es la Big Data?</strong></p>
+                <p>El impacto es directo y profundo sobre las garantías más sagradas del debido proceso. El derecho a la defensa y a la contradicción se ve amenazado cuando nos enfrentamos a algoritmos de "caja negra" que no podemos interrogar. La presunción de inocencia se pone en riesgo con sistemas predictivos que pueden generar un sesgo de "culpabilidad futura" en el juzgador. La imparcialidad judicial puede ser socavada por sesgos algorítmicos que perpetúan discriminaciones sistémicas sin que el juez sea consciente de ello. Finalmente, el derecho a una decisión motivada se vulnera si un fallo se basa en un resultado computacional que no puede ser explicado lógicamente en términos jurídicos.</p>
+            `
+        };
+
+        galaxyData['pregunta-3'] = {
+            type: 'question',
+            title: 'Pregunta 3: Desafíos Regulatorios',
+            category: 'Cuestionario - Pregunta',
+            position: [36, 9, -26],
+            size: 2.2,
+            color: '#3498db',
+            orbitParams: {
+                semiMajorAxis: 39,
+                semiMinorAxis: 33,
+                eccentricity: 0.2,
+                inclination: 0.1,
+                speed: 0.0004,
+                phase: 1.0
+            },
+            content: `
+                <p><strong>¿Cuáles cree usted que pueden ser los desafíos para la implementación de Big Data en la administración de justicia colombiana desde el punto de vista regulatorio?</strong></p>
+                <p>Desde el punto de vista regulatorio, los desafíos son enormes. Primero, necesitamos adaptar nuestras normas probatorias, diseñadas para pruebas tangibles, a una evidencia que es por naturaleza probabilística y algorítmica. Segundo, es urgente crear una gobernanza de datos clara que equilibre la necesidad investigativa del Estado con el derecho a la privacidad y al habeas data. Tercero, debemos establecer estándares técnicos mínimos de transparencia y explicabilidad para los algoritmos. Y, por último, un desafío crucial es la capacitación y acreditación de jueces, fiscales y abogados para que puedan interactuar con estas tecnologías de forma crítica y competente.</p>
+            `
+        };
+
+        galaxyData['pregunta-4'] = {
+            type: 'question',
+            title: 'Pregunta 4: Control Normativo',
+            category: 'Cuestionario - Pregunta',
+            position: [34, 6, -24],
+            size: 2.2,
+            color: '#3498db',
+            orbitParams: {
+                semiMajorAxis: 36,
+                semiMinorAxis: 32,
+                eccentricity: 0.15,
+                inclination: 0.05,
+                speed: 0.00045,
+                phase: 1.5
+            },
+            content: `
+                <p><strong>¿Existe un control normativo que garantice la legalidad y validez del uso de tecnología de análisis masivo de datos como lo es Big Data en la administración de justicia?</strong></p>
+                <p>Actualmente, no tenemos una ley específica e integral. El control normativo es un mosaico de normas preexistentes que aplicamos de forma indirecta. La principal vía de control es a través de las reglas de la prueba pericial y la prueba novel del Código de Procedimiento Penal (Art. 422), que exige demostrar la fiabilidad científica de una técnica. También aplicamos la Ley 1581 de 2012 sobre protección de datos como un límite fundamental. Y aunque el Consejo Superior de la Judicatura ha emitido lineamientos éticos muy importantes (Acuerdo PCSJA24-12243), estos son "soft law", es decir, directrices sin fuerza de ley vinculante. En resumen, la regulación es fragmentaria y deja vacíos que generan incertidumbre.</p>
+            `
+        };
+
+        galaxyData['pregunta-5'] = {
+            type: 'question',
+            title: 'Pregunta 5: Beneficios',
+            category: 'Cuestionario - Pregunta',
+            position: [32, 3, -22],
+            size: 2.2,
+            color: '#3498db',
+            orbitParams: {
+                semiMajorAxis: 33,
+                semiMinorAxis: 31,
+                eccentricity: 0.1,
+                inclination: 0.25,
+                speed: 0.0005,
+                phase: 2.0
+            },
+            content: `
+                <p><strong>¿En qué aspectos cree usted que el análisis masivo de datos puede beneficiar la investigación judicial y ayudar a mejorar la valoración de las pruebas en los casos legales?</strong></p>
+                <p>Los beneficios son significativos, siempre que se usen con cautela. El análisis masivo de datos nos permite identificar patrones delictivos y modus operandi al conectar información que antes estaba aislada en diferentes bases de datos. Facilita el análisis de vínculos entre personas, lugares y eventos que a simple vista no parecen relacionados, haciendo las investigaciones más eficientes. Además, es una herramienta poderosa para enriquecer y verificar otras pruebas; por ejemplo, una coartada puede ser corroborada o desmentida al contrastarla con registros de geolocalización o transacciones financieras. La policía predictiva es otra área de beneficio potencial, pero debe manejarse con extrema precaución por el alto riesgo de amplificar sesgos históricos y discriminación.</p>
+            `
+        };
+
+        // Añadir datos del cuestionario - Preguntas 6-10
+        galaxyData['pregunta-6'] = {
+            type: 'question',
+            title: 'Pregunta 6: Prueba Indiciaria',
+            category: 'Cuestionario - Pregunta',
+            position: [30, 0, -20],
+            size: 2.2,
+            color: '#3498db',
+            orbitParams: {
+                semiMajorAxis: 30,
+                semiMinorAxis: 29,
+                eccentricity: 0.05,
+                inclination: 0.3,
+                speed: 0.00055,
+                phase: 2.5
+            },
+            content: `
+                <p><strong>¿Cómo puede el análisis masivo de datos como lo es la Big Data contribuir a la construcción de la prueba indiciaria en los procesos judiciales?</strong></p>
+                <p>El Big Data no solo potencia la prueba indiciaria, sino que la reconfigura estructuralmente. Primero, transforma el "hecho indicador": ya no es un hecho único y probado (como "el acusado huyó"), sino una "constelación de miles de micro-indicadores digitales" cuyo patrón colectivo es estadísticamente significativo. Segundo, revoluciona el proceso de inferencia: la "regla de la experiencia" del juez, basada en el sentido común, es complementada o reemplazada por una "regla algorítmica" derivada del análisis estadístico. Esto nos permite pasar de una inferencia cualitativa a una conclusión con un grado de probabilidad cuantificable, fortaleciendo enormemente la robustez del indicio.</p>
+            `
+        };
+
+        galaxyData['pregunta-7'] = {
+            type: 'question',
+            title: 'Pregunta 7: Límites Jurídicos',
+            category: 'Cuestionario - Pregunta',
+            position: [28, -3, -18],
+            size: 2.2,
+            color: '#3498db',
+            orbitParams: {
+                semiMajorAxis: 28,
+                semiMinorAxis: 26,
+                eccentricity: 0.12,
+                inclination: 0.35,
+                speed: 0.0006,
+                phase: 3.0
+            },
+            content: `
+                <p><strong>¿Cuáles son los límites jurídicos para la utilización de datos procesados mediante inteligencia artificial en la construcción de indicios?</strong></p>
+                <p>Los límites son claros e infranqueables: los derechos fundamentales. Ninguna eficiencia tecnológica puede justificar la vulneración del debido proceso, la presunción de inocencia, la intimidad o la igualdad. Otro límite es el principio de legalidad probatoria: los datos base deben ser obtenidos lícitamente, de lo contrario, la prueba es nula. Además, su uso debe regirse por los principios de necesidad y proporcionalidad. Y, finalmente, un límite emergente y crucial es el principio de explicabilidad: una conclusión basada en un algoritmo de "caja negra" que no puede ser explicado y, por tanto, contradicho, sería inconstitucional por falta de motivación.</p>
+            `
+        };
+
+        galaxyData['pregunta-8'] = {
+            type: 'question',
+            title: 'Pregunta 8: Método Autónomo',
+            category: 'Cuestionario - Pregunta',
+            position: [26, -6, -16],
+            size: 2.2,
+            color: '#3498db',
+            orbitParams: {
+                semiMajorAxis: 26,
+                semiMinorAxis: 23,
+                eccentricity: 0.18,
+                inclination: 0.4,
+                speed: 0.00065,
+                phase: 3.5
+            },
+            content: `
+                <p><strong>¿Puede las tecnologías de análisis masivo de datos como la Big Data ser considerado un método de prueba autónomo, o debe ser complementado con otros medios probatorios para garantizar su legalidad?</strong></p>
+                <p>En el estado actual de la tecnología y el derecho, debe ser considerado un método de prueba complementario, no autónomo. Un resultado algorítmico por sí solo no es una prueba plena; es un elemento material probatorio que debe ser introducido al proceso a través de una prueba pericial que valide su metodología y fiabilidad. Su valoración debe hacerse siempre en conjunto con las demás pruebas del expediente, bajo las reglas de la sana crítica. Una condena no podría sustentarse exclusivamente en un hallazgo algorítmico. A futuro, con la estandarización y certificación, podría ganar autonomía, como ocurrió con la prueba de ADN, pero hoy no estamos en ese punto.</p>
+            `
+        };
+
+        galaxyData['pregunta-9'] = {
+            type: 'question',
+            title: 'Pregunta 9: Causalidad',
+            category: 'Cuestionario - Pregunta',
+            position: [24, -9, -14],
+            size: 2.2,
+            color: '#3498db',
+            orbitParams: {
+                semiMajorAxis: 24,
+                semiMinorAxis: 20,
+                eccentricity: 0.22,
+                inclination: 0.45,
+                speed: 0.0007,
+                phase: 4.0
+            },
+            content: `
+                <p><strong>Desde el punto de vista probatorio, ¿cómo se establecería la relación de causalidad entre los indicios obtenidos mediante tecnologías de análisis masivo de datos como Big Data y su correspondencia con los hechos jurídicos en un proceso judicial?</strong></p>
+                <p>Este es el "talón de Aquiles" del Big Data. Los algoritmos son excelentes para encontrar correlaciones, pero son incapaces de establecer causalidad por sí mismos. Un algoritmo puede decirnos que dos eventos ocurren juntos, pero no por qué. Por lo tanto, establecer esa relación de causalidad es una tarea intelectual que recae exclusivamente en el juez, en un proceso de dos pasos: primero, una validación técnica a través de un perito que explique la fiabilidad de la correlación encontrada. Y segundo, una validación jurídico-lógica, donde el juez integra esa correlación en una narrativa coherente con el resto de las pruebas, aplicando las reglas de la experiencia y la sana crítica para construir el nexo causal. El algoritmo da el "qué", el juez debe construir el "porqué".</p>
+            `
+        };
+
+        galaxyData['pregunta-10'] = {
+            type: 'question',
+            title: 'Pregunta 10: Derecho a la Defensa',
+            category: 'Cuestionario - Pregunta',
+            position: [22, -12, -12],
+            size: 2.2,
+            color: '#3498db',
+            orbitParams: {
+                semiMajorAxis: 22,
+                semiMinorAxis: 17,
+                eccentricity: 0.26,
+                inclination: 0.5,
+                speed: 0.00075,
+                phase: 4.5
+            },
+            content: `
+                <p><strong>¿En qué medida considera usted que el uso de Big Data puede afectar el derecho a la defensa y el principio de contradicción en los procesos penales?</strong></p>
+                <p>La afectación es gravísima. Genera una profunda asimetría de armas, donde el Estado cuenta con herramientas de análisis que la defensa, especialmente la pública, no puede igualar. Más importante aún, anula casi por completo la contradicción efectiva. ¿Cómo se contrainterroga a un algoritmo? Para hacerlo, la defensa necesitaría acceso al código fuente, a los datos de entrenamiento y a la metodología, información que suele estar protegida por secretos comerciales. Sin poder auditar y cuestionar el proceso que generó el resultado, el derecho a la contradicción se convierte en una formalidad vacía, una ilusión.</p>
+            `
+        };
+
+        // Añadir datos del cuestionario - Preguntas 11-13
+        galaxyData['pregunta-11'] = {
+            type: 'question',
+            title: 'Pregunta 11: Función Judicial',
+            category: 'Cuestionario - Pregunta',
+            position: [20, -15, -10],
+            size: 2.2,
+            color: '#3498db',
+            orbitParams: {
+                semiMajorAxis: 20,
+                semiMinorAxis: 14,
+                eccentricity: 0.3,
+                inclination: 0.55,
+                speed: 0.0008,
+                phase: 5.0
+            },
+            content: `
+                <p><strong>¿Considera usted que el uso del Big Data podría transformar la función judicial, acelerando la toma de decisiones sin comprometer la independencia de los jueces?</strong></p>
+                <p>Sí, sin duda puede acelerar la toma de decisiones, como ya lo demuestran herramientas como Pretoria en la Corte Constitucional, que automatizan tareas de clasificación y gestión. Sin embargo, la independencia judicial enfrenta un riesgo sutil: la dependencia cognitiva. El peligro no es que un robot reemplace al juez, sino que el juez, abrumado por la carga laboral, comience a aceptar acríticamente las recomendaciones del algoritmo, un fenómeno conocido como "sesgo de automatización". Esto erosionaría el juicio independiente. Por ello, el principio rector es que la IA debe ser siempre una herramienta de apoyo, pero la responsabilidad y la decisión final deben permanecer, indelegablemente, en el ser humano.</p>
+            `
+        };
+
+        galaxyData['pregunta-12'] = {
+            type: 'question',
+            title: 'Pregunta 12: Herramientas',
+            category: 'Cuestionario - Pregunta',
+            position: [18, -18, -8],
+            size: 2.2,
+            color: '#3498db',
+            orbitParams: {
+                semiMajorAxis: 18,
+                semiMinorAxis: 11,
+                eccentricity: 0.34,
+                inclination: 0.6,
+                speed: 0.00085,
+                phase: 5.5
+            },
+            content: `
+                <p><strong>¿Qué herramientas y tecnologías considera usted puedan fortalecer la recolección y análisis de indicios en los procesos judiciales, asegurando la legalidad y la imparcialidad?</strong></p>
+                <p>Debemos priorizar tecnologías que incorporen garantías "por diseño". Por ejemplo, herramientas de Inteligencia Artificial Explicable (XAI), que no sean "cajas negras" y puedan justificar sus resultados, como ya lo sugieren las directrices del Consejo Superior. También es clave el software de cadena de custodia digital, que crea un registro inalterable de cada interacción con la evidencia digital para garantizar su integridad. Asimismo, las plataformas de Inteligencia de Fuentes Abiertas (OSINT) son muy útiles, pero deben tener salvaguardas éticas para no convertirse en herramientas de vigilancia masiva. Finalmente, las plataformas de análisis federado permiten analizar datos sin centralizarlos, protegiendo mejor la privacidad.</p>
+            `
+        };
+
+        galaxyData['pregunta-13'] = {
+            type: 'question',
+            title: 'Pregunta 13: Elementos Probatorios',
+            category: 'Cuestionario - Pregunta',
+            position: [16, -21, -6],
+            size: 2.2,
+            color: '#3498db',
+            orbitParams: {
+                semiMajorAxis: 16,
+                semiMinorAxis: 8,
+                eccentricity: 0.38,
+                inclination: 0.65,
+                speed: 0.0009,
+                phase: 6.0
+            },
+            content: `
+                <p><strong>¿Qué elementos probatorios y tecnológicos utilizaría usted para fortalecer la construcción de indicios dentro del debido proceso, garantizando la legalidad y la imparcialidad en el sistema judicial colombiano?</strong></p>
+                <p>Para garantizar un debido proceso robusto, combinaría elementos probatorios y tecnológicos. El elemento probatorio central sería un Informe Pericial de Validación Algorítmica obligatorio, que detalle el modelo, los datos, las tasas de error y una auditoría de sesgos. Tecnológicamente, implementaría entornos de prueba seguros (sandboxing) para que la defensa pueda auditar los algoritmos de la acusación. También usaría tecnología de registros inmutables (como blockchain) para crear una traza auditable de todo el proceso analítico. Pero el elemento más crucial no es tecnológico, sino humano: una inversión seria y continua en la capacitación de jueces, fiscales y defensores para que sean consumidores críticos, y no pasivos, de estas tecnologías.</p>
+            `
+        };
+
+        // Añadir respuestas como astros más pequeños que orbitan alrededor de las preguntas
+        galaxyData['respuesta-1'] = {
+            type: 'answer',
+            title: 'Respuesta 1: Cambio Radical',
+            category: 'Cuestionario - Respuesta',
+            position: [41, 16, -31],
+            size: 1.2,
+            color: '#e74c3c',
+            parentQuestion: 'pregunta-1',
+            orbitParams: {
+                radius: 3,
+                speed: 0.002,
+                phase: 0
+            },
+            content: `
+                <p><strong>Respuesta a la Pregunta 1:</strong></p>
+                <p>El cambio es radical: de escasez de pruebas físicas a sobreabundancia de datos digitales. La "escena del crimen" ahora incluye la nube, GPS, transacciones y redes sociales. El análisis algorítmico encuentra patrones invisibles para humanos.</p>
+            `
+        };
+
+        galaxyData['respuesta-2'] = {
+            type: 'answer',
+            title: 'Respuesta 2: Impacto en Garantías',
+            category: 'Cuestionario - Respuesta',
+            position: [39, 13, -29],
+            size: 1.2,
+            color: '#e74c3c',
+            parentQuestion: 'pregunta-2',
+            orbitParams: {
+                radius: 3,
+                speed: 0.0022,
+                phase: 0.5
+            },
+            content: `
+                <p><strong>Respuesta a la Pregunta 2:</strong></p>
+                <p>El impacto afecta garantías fundamentales: derecho a la defensa frente a algoritmos de "caja negra", presunción de inocencia amenazada por predicciones, imparcialidad judicial comprometida por sesgos algorítmicos, y decisiones motivadas en riesgo por resultados inexplicables.</p>
+            `
+        };
+
+        galaxyData['respuesta-3'] = {
+            type: 'answer',
+            title: 'Respuesta 3: Desafíos Regulatorios',
+            category: 'Cuestionario - Respuesta',
+            position: [37, 10, -27],
+            size: 1.2,
+            color: '#e74c3c',
+            parentQuestion: 'pregunta-3',
+            orbitParams: {
+                radius: 3,
+                speed: 0.0024,
+                phase: 1.0
+            },
+            content: `
+                <p><strong>Respuesta a la Pregunta 3:</strong></p>
+                <p>Los desafíos incluyen: adaptar normas probatorias a evidencia algorítmica, crear gobernanza de datos que equilibre investigación y privacidad, establecer estándares de transparencia, y capacitar a operadores judiciales para interactuar críticamente con estas tecnologías.</p>
+            `
+        };
+
+        galaxyData['respuesta-4'] = {
+            type: 'answer',
+            title: 'Respuesta 4: Control Fragmentario',
+            category: 'Cuestionario - Respuesta',
+            position: [35, 7, -25],
+            size: 1.2,
+            color: '#e74c3c',
+            parentQuestion: 'pregunta-4',
+            orbitParams: {
+                radius: 3,
+                speed: 0.0026,
+                phase: 1.5
+            },
+            content: `
+                <p><strong>Respuesta a la Pregunta 4:</strong></p>
+                <p>No existe ley específica integral. El control es un mosaico: prueba pericial y novel (Art. 422 CPP), protección de datos (Ley 1581/2012), y lineamientos éticos del Consejo Superior ("soft law"). La regulación es fragmentaria y deja vacíos significativos.</p>
+            `
+        };
+
+        galaxyData['respuesta-5'] = {
+            type: 'answer',
+            title: 'Respuesta 5: Beneficios Potenciales',
+            category: 'Cuestionario - Respuesta',
+            position: [33, 4, -23],
+            size: 1.2,
+            color: '#e74c3c',
+            parentQuestion: 'pregunta-5',
+            orbitParams: {
+                radius: 3,
+                speed: 0.0028,
+                phase: 2.0
+            },
+            content: `
+                <p><strong>Respuesta a la Pregunta 5:</strong></p>
+                <p>Los beneficios incluyen: identificación de patrones delictivos, análisis de vínculos entre personas y eventos aparentemente no relacionados, verificación de otras pruebas (como coartadas), y potencial para policía predictiva (con cautela por riesgo de sesgos).</p>
+            `
+        };
+
+        galaxyData['respuesta-6'] = {
+            type: 'answer',
+            title: 'Respuesta 6: Reconfiguración del Indicio',
+            category: 'Cuestionario - Respuesta',
+            position: [31, 1, -21],
+            size: 1.2,
+            color: '#e74c3c',
+            parentQuestion: 'pregunta-6',
+            orbitParams: {
+                radius: 3,
+                speed: 0.003,
+                phase: 2.5
+            },
+            content: `
+                <p><strong>Respuesta a la Pregunta 6:</strong></p>
+                <p>Big Data reconfigura la prueba indiciaria: transforma el "hecho indicador" en una constelación de micro-indicadores digitales y revoluciona la inferencia al complementar la experiencia del juez con reglas algorítmicas, permitiendo conclusiones con probabilidad cuantificable.</p>
+            `
+        };
+
+        galaxyData['respuesta-7'] = {
+            type: 'answer',
+            title: 'Respuesta 7: Límites Infranqueables',
+            category: 'Cuestionario - Respuesta',
+            position: [29, -2, -19],
+            size: 1.2,
+            color: '#e74c3c',
+            parentQuestion: 'pregunta-7',
+            orbitParams: {
+                radius: 3,
+                speed: 0.0032,
+                phase: 3.0
+            },
+            content: `
+                <p><strong>Respuesta a la Pregunta 7:</strong></p>
+                <p>Los límites son los derechos fundamentales, el principio de legalidad probatoria (datos obtenidos lícitamente), necesidad y proporcionalidad, y el principio emergente de explicabilidad: algoritmos de "caja negra" inexplicables serían inconstitucionales por falta de motivación.</p>
+            `
+        };
+
+        galaxyData['respuesta-8'] = {
+            type: 'answer',
+            title: 'Respuesta 8: Método Complementario',
+            category: 'Cuestionario - Respuesta',
+            position: [27, -5, -17],
+            size: 1.2,
+            color: '#e74c3c',
+            parentQuestion: 'pregunta-8',
+            orbitParams: {
+                radius: 3,
+                speed: 0.0034,
+                phase: 3.5
+            },
+            content: `
+                <p><strong>Respuesta a la Pregunta 8:</strong></p>
+                <p>Actualmente debe ser complementario, no autónomo. Requiere validación pericial de metodología y fiabilidad, y valoración conjunta con otras pruebas. Una condena no puede basarse exclusivamente en hallazgos algorítmicos. Con estandarización futura, podría ganar autonomía.</p>
+            `
+        };
+
+        galaxyData['respuesta-9'] = {
+            type: 'answer',
+            title: 'Respuesta 9: Talón de Aquiles',
+            category: 'Cuestionario - Respuesta',
+            position: [25, -8, -15],
+            size: 1.2,
+            color: '#e74c3c',
+            parentQuestion: 'pregunta-9',
+            orbitParams: {
+                radius: 3,
+                speed: 0.0036,
+                phase: 4.0
+            },
+            content: `
+                <p><strong>Respuesta a la Pregunta 9:</strong></p>
+                <p>El "talón de Aquiles": los algoritmos encuentran correlaciones pero no establecen causalidad. La relación causal requiere: 1) validación técnica por perito sobre fiabilidad de correlaciones, y 2) validación jurídico-lógica donde el juez integra esa correlación en narrativa coherente con otras pruebas.</p>
+            `
+        };
+
+        galaxyData['respuesta-10'] = {
+            type: 'answer',
+            title: 'Respuesta 10: Asimetría de Armas',
+            category: 'Cuestionario - Respuesta',
+            position: [23, -11, -13],
+            size: 1.2,
+            color: '#e74c3c',
+            parentQuestion: 'pregunta-10',
+            orbitParams: {
+                radius: 3,
+                speed: 0.0038,
+                phase: 4.5
+            },
+            content: `
+                <p><strong>Respuesta a la Pregunta 10:</strong></p>
+                <p>La afectación es gravísima: genera asimetría de armas entre Estado y defensa, y anula la contradicción efectiva. ¿Cómo contrainterrogar un algoritmo sin acceso a código fuente, datos de entrenamiento y metodología? El derecho a contradicción se vuelve una formalidad vacía.</p>
+            `
+        };
+
+        galaxyData['respuesta-11'] = {
+            type: 'answer',
+            title: 'Respuesta 11: Dependencia Cognitiva',
+            category: 'Cuestionario - Respuesta',
+            position: [21, -14, -11],
+            size: 1.2,
+            color: '#e74c3c',
+            parentQuestion: 'pregunta-11',
+            orbitParams: {
+                radius: 3,
+                speed: 0.004,
+                phase: 5.0
+            },
+            content: `
+                <p><strong>Respuesta a la Pregunta 11:</strong></p>
+                <p>Puede acelerar decisiones, pero la independencia judicial enfrenta el riesgo de "dependencia cognitiva": jueces aceptando acríticamente recomendaciones algorítmicas por sobrecarga laboral. El principio rector debe ser que la IA es herramienta de apoyo, pero la decisión final es indelegablemente humana.</p>
+            `
+        };
+
+        galaxyData['respuesta-12'] = {
+            type: 'answer',
+            title: 'Respuesta 12: Garantías por Diseño',
+            category: 'Cuestionario - Respuesta',
+            position: [19, -17, -9],
+            size: 1.2,
+            color: '#e74c3c',
+            parentQuestion: 'pregunta-12',
+            orbitParams: {
+                radius: 3,
+                speed: 0.0042,
+                phase: 5.5
+            },
+            content: `
+                <p><strong>Respuesta a la Pregunta 12:</strong></p>
+                <p>Priorizar tecnologías con garantías "por diseño": IA Explicable (XAI) que justifique resultados, cadena de custodia digital con registro inalterable, plataformas OSINT con salvaguardas éticas, y análisis federado que proteja privacidad al procesar datos sin centralizarlos.</p>
+            `
+        };
+
+        galaxyData['respuesta-13'] = {
+            type: 'answer',
+            title: 'Respuesta 13: Validación Algorítmica',
+            category: 'Cuestionario - Respuesta',
+            position: [17, -20, -7],
+            size: 1.2,
+            color: '#e74c3c',
+            parentQuestion: 'pregunta-13',
+            orbitParams: {
+                radius: 3,
+                speed: 0.0044,
+                phase: 6.0
+            },
+            content: `
+                <p><strong>Respuesta a la Pregunta 13:</strong></p>
+                <p>Combinaría: Informe Pericial de Validación Algorítmica obligatorio (detallando modelo, datos, tasas de error), entornos de prueba seguros para auditoría por la defensa, registros inmutables (blockchain) para trazabilidad, y capacitación continua de operadores judiciales para uso crítico de estas tecnologías.</p>
+            `
+        };
+
+        // Variables globales
+        let scene, camera, renderer, labelRenderer, controls, composer;
+        let celestialBodies = {};
+        let animationEnabled = true;
+        let labelsVisible = false;
+        let tooltip;
+        let loadingManager;
+        let bloomLayer, bloomComposer;
+
+        // Inicialización
         function init() {
-            const container = document.getElementById('main-canvas-container');
+            console.log("Iniciando función init()");
             
+            // Configurar gestor de carga
+            loadingManager = new THREE.LoadingManager();
+            
+            // Añadir eventos de depuración al LoadingManager
+            loadingManager.onStart = function(url, itemsLoaded, itemsTotal) {
+                console.log('Comenzando a cargar: ' + url + '.\nCargados ' + itemsLoaded + ' de ' + itemsTotal + ' archivos.');
+            };
+            
+            loadingManager.onLoad = function() {
+                console.log('LoadingManager: Todos los recursos cargados');
+                document.getElementById('loading-screen').style.opacity = '0';
+                setTimeout(() => {
+                    document.getElementById('loading-screen').style.display = 'none';
+                }, 1000);
+            };
+            
+            loadingManager.onProgress = function(url, itemsLoaded, itemsTotal) {
+                console.log('Cargando: ' + url + '.\nCargados ' + itemsLoaded + ' de ' + itemsTotal + ' archivos.');
+            };
+            
+            loadingManager.onError = function(url) {
+                console.error('Error al cargar: ' + url);
+            };
+            
+            // Forzar el evento onLoad del LoadingManager
+            console.log("Forzando manualmente el evento onLoad del LoadingManager");
+            setTimeout(() => {
+                loadingManager.onLoad();
+            }, 2000);
+            
+            // Crear escena
             scene = new THREE.Scene();
-            scene.fog = new THREE.FogExp2(0x010409, 0.03);
-
+            scene.fog = new THREE.FogExp2(0x000a0f, 0.0015);
+            
+            // Crear capa para efectos de bloom
+            bloomLayer = new THREE.Layers();
+            bloomLayer.set(1);
+            
+            console.log("Escena creada");
+            
+            // Configurar cámara
             camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-            camera.position.z = 30;
-
-            renderer = new THREE.WebGLRenderer({ antialias: true });
+            camera.position.set(50, 30, 50);
+            console.log("Cámara configurada");
+            
+            // Configurar renderer con WebGL2 si está disponible
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('webgl2', { antialias: true });
+            const useWebGL2 = !!context;
+            
+            if (useWebGL2) {
+                console.log("Usando WebGL2 (Context7)");
+                renderer = new THREE.WebGLRenderer({
+                    antialias: true,
+                    alpha: true,
+                    canvas: canvas,
+                    context: context,
+                    powerPreference: "high-performance"
+                });
+            } else {
+                console.log("Usando WebGL1 (fallback)");
+                renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            }
+            
             renderer.setSize(window.innerWidth, window.innerHeight);
             renderer.setPixelRatio(window.devicePixelRatio);
-            container.appendChild(renderer.domElement);
-
+            renderer.setClearColor(0x000000, 0);
+            
+            // Habilitar características modernas de renderizado
+            renderer.physicallyCorrectLights = true;
+            renderer.outputEncoding = THREE.sRGBEncoding;
+            renderer.toneMapping = THREE.ACESFilmicToneMapping;
+            renderer.toneMappingExposure = 1.0;
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            
+            document.getElementById('container').appendChild(renderer.domElement);
+            
+            // Configurar label renderer
             labelRenderer = new CSS2DRenderer();
             labelRenderer.setSize(window.innerWidth, window.innerHeight);
             labelRenderer.domElement.style.position = 'absolute';
             labelRenderer.domElement.style.top = '0px';
             labelRenderer.domElement.style.pointerEvents = 'none';
-            container.appendChild(labelRenderer.domElement);
-
+            document.getElementById('container').appendChild(labelRenderer.domElement);
+            
+            // Configurar controles
             controls = new OrbitControls(camera, renderer.domElement);
             controls.enableDamping = true;
             controls.dampingFactor = 0.05;
-            controls.minDistance = 5;
-            controls.maxDistance = 100;
-            controls.enablePan = false;
-
-            const ambientLight = new THREE.AmbientLight(0x404040, 2);
-            scene.add(ambientLight);
-            const directionalLight = new THREE.DirectionalLight(0x58a6ff, 1);
-            directionalLight.position.set(5, 5, 5);
-            scene.add(directionalLight);
+            controls.maxDistance = 200;
+            controls.minDistance = 10;
             
-            const starGeometry = new THREE.BufferGeometry();
-            const starVertices = [];
-            for (let i = 0; i < 10000; i++) {
-                const x = THREE.MathUtils.randFloatSpread(2000);
-                const y = THREE.MathUtils.randFloatSpread(2000);
-                const z = THREE.MathUtils.randFloatSpread(2000);
-                starVertices.push(x, y, z);
-            }
-            starGeometry.setAttribute('position', new THREE.Float32BufferAttribute(starVertices, 3));
-            const starMaterial = new THREE.PointsMaterial({ color: 0x888888, size: 0.1 });
-            const stars = new THREE.Points(starGeometry, starMaterial);
-            scene.add(stars);
-
-            mainGroup = new THREE.Group();
-            scene.add(mainGroup);
+            // Crear estrellas de fondo
+            createStarField();
+            console.log("Campo de estrellas creado");
             
-            createNodes();
-
-            window.addEventListener('resize', onWindowResize, false);
-            document.getElementById('close-panel-btn').addEventListener('click', closeInfoPanel);
-            renderer.domElement.addEventListener('click', onCanvasClick, false);
-
-            document.getElementById('loader-container').style.display = 'none';
-
+            // Crear cuerpos celestiales
+            createCelestialBodies();
+            console.log("Cuerpos celestiales creados");
+            
+            // Configurar iluminación
+            setupLighting();
+            console.log("Iluminación configurada");
+            
+            // Configurar eventos
+            setupEvents();
+            console.log("Eventos configurados");
+            
+            // Configurar post-procesamiento
+            setupPostProcessing();
+            console.log("Post-procesamiento configurado");
+            
+            // Crear tooltip
+            createTooltip();
+            console.log("Tooltip creado");
+            
+            // Iniciar animación
+            console.log("Iniciando animación");
             animate();
         }
 
-        function createNodes() {
-            const keys = Object.keys(contentData);
-            const numNodes = keys.length;
-            const radius = 15;
-
-            keys.forEach((key, i) => {
-                const angle = (i / numNodes) * Math.PI * 2;
-                const x = radius * Math.cos(angle);
-                const y = THREE.MathUtils.randFloat(-5, 5);
-                const z = radius * Math.sin(angle);
-
-                const geometry = new THREE.IcosahedronGeometry(0.5, 1);
-                const material = new THREE.MeshStandardMaterial({
-                    color: 0x58a6ff,
-                    emissive: 0x003366,
-                    metalness: 0.8,
-                    roughness: 0.2,
-                });
-                const nodeMesh = new THREE.Mesh(geometry, material);
-                nodeMesh.position.set(x, y, z);
-                nodeMesh.userData.id = key;
-                mainGroup.add(nodeMesh);
-
-                const labelDiv = document.createElement('div');
-                labelDiv.className = 'node-label';
-                labelDiv.textContent = contentData[key].title.split('?')[0];
-
-                const label = new CSS2DObject(labelDiv);
-                label.position.copy(nodeMesh.position);
-                mainGroup.add(label);
-                
-                nodes.push(nodeMesh);
+        function createStarField() {
+            const starsGeometry = new THREE.BufferGeometry();
+            const starsMaterial = new THREE.PointsMaterial({
+                color: 0xffffff,
+                size: 0.5,
+                transparent: true,
+                opacity: 0.8,
+                sizeAttenuation: true
             });
+            
+            const starsVertices = [];
+            for (let i = 0; i < 15000; i++) {
+                const x = (Math.random() - 0.5) * 2000;
+                const y = (Math.random() - 0.5) * 2000;
+                const z = (Math.random() - 0.5) * 2000;
+                starsVertices.push(x, y, z);
+            }
+            
+            starsGeometry.setAttribute('position', new THREE.Float32BufferAttribute(starsVertices, 3));
+            const starField = new THREE.Points(starsGeometry, starsMaterial);
+            scene.add(starField);
         }
-        
-        function onCanvasClick(event) {
-            if (event.target !== renderer.domElement) return;
 
-            const raycaster = new THREE.Raycaster();
+        function createCelestialBodies() {
+            console.log("Creando cuerpos celestiales. Total: " + Object.keys(galaxyData).length);
+            Object.keys(galaxyData).forEach(key => {
+                try {
+                    console.log("Creando cuerpo celestial: " + key);
+                    const data = galaxyData[key];
+                    const body = createCelestialBody(data);
+                    body.userData = { key, data };
+                    celestialBodies[key] = body;
+                    scene.add(body);
+                    
+                    // Crear etiqueta
+                    if (labelsVisible) {
+                        createLabel(body, data.title);
+                    }
+                    console.log("Cuerpo celestial creado: " + key);
+                } catch (error) {
+                    console.error("Error al crear cuerpo celestial " + key + ": ", error);
+                }
+            });
+            console.log("Todos los cuerpos celestiales creados");
+        }
+
+        function createCelestialBody(data) {
+            const group = new THREE.Group();
+            
+            let geometry, material;
+            
+            // Cargar texturas para mejorar el realismo
+            const textureLoader = new THREE.TextureLoader(loadingManager);
+            
+            // Texturas predeterminadas para PBR
+            const defaultNormalMap = textureLoader.load('https://cdn.jsdelivr.net/gh/mrdoob/three.js@dev/examples/textures/planets/earth_normal_2048.jpg');
+            const defaultRoughnessMap = textureLoader.load('https://cdn.jsdelivr.net/gh/mrdoob/three.js@dev/examples/textures/planets/earth_specular_2048.jpg');
+            const defaultMetalnessMap = textureLoader.load('https://cdn.jsdelivr.net/gh/mrdoob/three.js@dev/examples/textures/planets/earth_specular_2048.jpg');
+            
+            switch (data.type) {
+                case 'question':
+                    geometry = new THREE.SphereGeometry(data.size, 64, 64);
+                    material = new THREE.MeshPhysicalMaterial({
+                        color: data.color,
+                        emissive: data.color,
+                        emissiveIntensity: 0.2,
+                        roughness: 0.7,
+                        metalness: 0.3,
+                        normalMap: defaultNormalMap,
+                        roughnessMap: defaultRoughnessMap,
+                        metalnessMap: defaultMetalnessMap,
+                        clearcoat: 0.5,
+                        clearcoatRoughness: 0.3,
+                        envMapIntensity: 1.0
+                    });
+                    break;
+                    
+                case 'answer':
+                    geometry = new THREE.SphereGeometry(data.size, 32, 32);
+                    material = new THREE.MeshPhysicalMaterial({
+                        color: data.color,
+                        emissive: data.color,
+                        emissiveIntensity: 0.1,
+                        roughness: 0.6,
+                        metalness: 0.4,
+                        normalMap: defaultNormalMap,
+                        roughnessMap: defaultRoughnessMap,
+                        metalnessMap: defaultMetalnessMap,
+                        clearcoat: 0.3,
+                        clearcoatRoughness: 0.2
+                    });
+                    break;
+                    
+                case 'sol':
+                    geometry = new THREE.SphereGeometry(data.size, 64, 64);
+                    material = new THREE.MeshBasicMaterial({
+                        color: data.color
+                    });
+                    // Añadir efecto de brillo más localizado
+                    const glowSize = data.size * 1.2; // Reducir el tamaño del resplandor
+                    const glowGeometry = new THREE.SphereGeometry(glowSize, 32, 32);
+                    const glowMaterial = new THREE.ShaderMaterial({
+                        uniforms: {
+                            c: { type: "f", value: 0.5 }, // Aumentar para concentrar el brillo
+                            p: { type: "f", value: 2.5 }, // Aumentar para hacer el brillo más pronunciado cerca del sol
+                            glowColor: { type: "c", value: new THREE.Color(data.color) },
+                            viewVector: { type: "v3", value: camera.position }
+                        },
+                        vertexShader: `
+                            uniform vec3 viewVector;
+                            uniform float c;
+                            uniform float p;
+                            varying float intensity;
+                            void main() {
+                                vec3 vNormal = normalize(normal);
+                                vec3 vNormel = normalize(viewVector);
+                                // Fórmula mejorada para concentrar el brillo cerca del sol
+                                intensity = pow(c - dot(vNormal, vNormel), p) * 0.8;
+                                gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+                            }
+                        `,
+                        fragmentShader: `
+                            uniform vec3 glowColor;
+                            varying float intensity;
+                            void main() {
+                                // Atenuación más rápida para limitar el alcance del resplandor
+                                vec3 glow = glowColor * intensity * intensity;
+                                gl_FragColor = vec4(glow, intensity * 0.9); // Transparencia basada en intensidad
+                            }
+                        `,
+                        side: THREE.BackSide,
+                        blending: THREE.AdditiveBlending,
+                        transparent: true
+                    });
+                    const glow = new THREE.Mesh(glowGeometry, glowMaterial);
+                    group.add(glow);
+                    break;
+                    
+                case 'star':
+                    geometry = new THREE.SphereGeometry(data.size, 32, 32);
+                    material = new THREE.MeshBasicMaterial({
+                        color: data.color
+                    });
+                    break;
+                    
+                case 'planet':
+                    geometry = new THREE.SphereGeometry(data.size, 64, 64);
+                    material = new THREE.MeshPhysicalMaterial({
+                        color: data.color,
+                        roughness: 0.8,
+                        metalness: 0.2,
+                        normalMap: defaultNormalMap,
+                        roughnessMap: defaultRoughnessMap,
+                        normalScale: new THREE.Vector2(1, 1),
+                        envMapIntensity: 0.8
+                    });
+                    break;
+                    
+                case 'moon':
+                    geometry = new THREE.SphereGeometry(data.size, 32, 32);
+                    material = new THREE.MeshPhysicalMaterial({
+                        color: data.color,
+                        roughness: 0.9,
+                        metalness: 0.1,
+                        normalMap: defaultNormalMap,
+                        normalScale: new THREE.Vector2(0.8, 0.8)
+                    });
+                    break;
+                    
+                case 'comet':
+                    // Crear núcleo del cometa
+                    geometry = new THREE.SphereGeometry(data.size, 16, 16);
+                    material = new THREE.MeshPhongMaterial({
+                        color: data.color
+                    });
+                    
+                    // Crear cola del cometa
+                    const tailGeometry = new THREE.ConeGeometry(data.size * 0.8, data.size * 8, 16);
+                    const tailMaterial = new THREE.MeshBasicMaterial({
+                        color: data.color,
+                        transparent: true,
+                        opacity: 0.6,
+                        side: THREE.DoubleSide
+                    });
+                    const tail = new THREE.Mesh(tailGeometry, tailMaterial);
+                    tail.position.set(-data.size * 4, 0, 0);
+                    tail.rotation.z = Math.PI / 2;
+                    group.add(tail);
+                    break;
+                    
+                case 'asteroid':
+                    geometry = new THREE.DodecahedronGeometry(data.size, 1);
+                    material = new THREE.MeshStandardMaterial({
+                        color: data.color,
+                        roughness: 0.8,
+                        metalness: 0.2
+                    });
+                    // Deformar geometría para hacerla más irregular
+                    const positionAttribute = geometry.getAttribute('position');
+                    const vertex = new THREE.Vector3();
+                    for (let i = 0; i < positionAttribute.count; i++) {
+                        vertex.fromBufferAttribute(positionAttribute, i);
+                        vertex.x += (Math.random() - 0.5) * 0.2 * data.size;
+                        vertex.y += (Math.random() - 0.5) * 0.2 * data.size;
+                        vertex.z += (Math.random() - 0.5) * 0.2 * data.size;
+                        positionAttribute.setXYZ(i, vertex.x, vertex.y, vertex.z);
+                    }
+                    geometry.computeVertexNormals();
+                    break;
+                    
+                case 'nebula':
+                    geometry = new THREE.SphereGeometry(data.size, 32, 32);
+                    material = new THREE.MeshBasicMaterial({
+                        color: data.color,
+                        transparent: true,
+                        opacity: 0.3,
+                        wireframe: true
+                    });
+                    
+                    // Añadir partículas para efecto nebuloso
+                    const particlesGeometry = new THREE.BufferGeometry();
+                    const particlesMaterial = new THREE.PointsMaterial({
+                        color: data.color,
+                        size: 0.2,
+                        transparent: true,
+                        opacity: 0.5,
+                        sizeAttenuation: true
+                    });
+                    
+                    const particlesPositions = [];
+                    for (let i = 0; i < 1000; i++) {
+                        const theta = Math.random() * Math.PI * 2;
+                        const phi = Math.acos(2 * Math.random() - 1);
+                        const radius = data.size * (0.8 + Math.random() * 0.4);
+                        
+                        const x = radius * Math.sin(phi) * Math.cos(theta);
+                        const y = radius * Math.sin(phi) * Math.sin(theta);
+                        const z = radius * Math.cos(phi);
+                        
+                        particlesPositions.push(x, y, z);
+                    }
+                    
+                    particlesGeometry.setAttribute('position', new THREE.Float32BufferAttribute(particlesPositions, 3));
+                    const particles = new THREE.Points(particlesGeometry, particlesMaterial);
+                    group.add(particles);
+                    break;
+                    
+                case 'special': // Para el cuestionario completo
+                    geometry = new THREE.OctahedronGeometry(data.size);
+                    material = new THREE.MeshPhongMaterial({
+                        color: data.color,
+                        emissive: data.color,
+                        emissiveIntensity: 0.2
+                    });
+                    break;
+            }
+            
+            const mesh = new THREE.Mesh(geometry, material);
+            mesh.position.set(...data.position);
+            group.add(mesh);
+            
+            return group;
+        }
+
+        function createLabel(object, text) {
+            const labelDiv = document.createElement('div');
+            labelDiv.className = 'label';
+            labelDiv.textContent = text;
+            
+            const label = new CSS2DObject(labelDiv);
+            
+            // Obtener el tamaño de la geometría de manera segura
+            let offsetY = 2;
+            if (object.children[0] && object.children[0].geometry) {
+                if (object.children[0].geometry.parameters && object.children[0].geometry.parameters.radius) {
+                    offsetY += object.children[0].geometry.parameters.radius;
+                } else if (object.children[0].geometry.boundingSphere) {
+                    offsetY += object.children[0].geometry.boundingSphere.radius;
+                } else {
+                    // Usar un valor predeterminado basado en el tipo de objeto
+                    const data = object.userData.data;
+                    if (data) {
+                        offsetY += data.size || 2;
+                    }
+                }
+            }
+            
+            label.position.set(0, offsetY, 0);
+            object.add(label);
+        }
+
+        function setupLighting() {
+            // Luz ambiental mejorada
+            const ambientLight = new THREE.AmbientLight(0x404040, 0.5);
+            scene.add(ambientLight);
+            
+            // Luz direccional principal con sombras
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 1.2);
+            directionalLight.position.set(50, 50, 50);
+            directionalLight.castShadow = true;
+            directionalLight.shadow.mapSize.width = 2048;
+            directionalLight.shadow.mapSize.height = 2048;
+            directionalLight.shadow.camera.near = 0.5;
+            directionalLight.shadow.camera.far = 500;
+            directionalLight.shadow.bias = -0.0001;
+            scene.add(directionalLight);
+            
+            // Luz de relleno suave
+            const fillLight = new THREE.DirectionalLight(0x8888ff, 0.3);
+            fillLight.position.set(-50, -10, -50);
+            scene.add(fillLight);
+            
+            // Luces puntuales para estrellas con atenuación física
+            Object.keys(galaxyData).forEach(key => {
+                const data = galaxyData[key];
+                if (data.type === 'sol' || data.type === 'star') {
+                    const pointLight = new THREE.PointLight(data.color, 1.5, 100, 2); // Atenuación física cuadrática
+                    pointLight.position.set(...data.position);
+                    scene.add(pointLight);
+                }
+            });
+            
+            // Añadir luz ambiental de hemisferio para simular rebote de luz
+            const hemiLight = new THREE.HemisphereLight(0xffffbb, 0x080820, 0.3);
+            scene.add(hemiLight);
+        }
+
+        function setupEvents() {
+            // Eventos de navegación
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.addEventListener('click', (e) => {
+                    const target = e.target.getAttribute('data-target');
+                    if (target && celestialBodies[target]) {
+                        focusOnObject(target);
+                        showInfo(target);
+                    }
+                });
+            });
+            
+            // Eventos de mouse
+            renderer.domElement.addEventListener('mousemove', onMouseMove);
+            renderer.domElement.addEventListener('click', onClick);
+            
+            // Redimensionamiento
+            window.addEventListener('resize', onWindowResize);
+            
+            // Botones de control
+            document.getElementById('reset-view-btn').addEventListener('click', resetView);
+            document.getElementById('toggle-animation-btn').addEventListener('click', toggleAnimation);
+            document.getElementById('toggle-labels-btn').addEventListener('click', toggleLabels);
+            document.getElementById('overview-btn').addEventListener('click', showOverview);
+            
+            // Botón de navegación
+            document.getElementById('nav-toggle').addEventListener('click', toggleNavigation);
+            
+            // Botón de cierre del panel de información
+            document.querySelector('#info-panel .close-btn').addEventListener('click', closeInfoPanel);
+        }
+
+        function createTooltip() {
+            tooltip = document.createElement('div');
+            tooltip.className = 'tooltip';
+            document.body.appendChild(tooltip);
+        }
+
+        function onMouseMove(event) {
             const mouse = new THREE.Vector2();
-            
             mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-            mouse.y = - (event.clientY / window.innerHeight) * 2 + 1;
+            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
             
+            const raycaster = new THREE.Raycaster();
             raycaster.setFromCamera(mouse, camera);
             
-            const intersects = raycaster.intersectObjects(nodes);
+            const intersects = raycaster.intersectObjects(scene.children, true);
             
             if (intersects.length > 0) {
-                const selectedNode = intersects[0].object;
-                if(selectedNode !== activeNode){
-                    selectNode(selectedNode);
+                const object = intersects[0].object;
+                let parent = object.parent;
+                
+                while (parent && !parent.userData.key) {
+                    parent = parent.parent;
+                }
+                
+                if (parent && parent.userData.key) {
+                    const data = parent.userData.data;
+                    tooltip.innerHTML = `<strong>${data.title}</strong><br>${data.category}`;
+                    tooltip.style.left = event.clientX + 10 + 'px';
+                    tooltip.style.top = event.clientY - 10 + 'px';
+                    tooltip.style.display = 'block';
+                    renderer.domElement.style.cursor = 'pointer';
+                } else {
+                    tooltip.style.display = 'none';
+                    renderer.domElement.style.cursor = 'default';
+                }
+            } else {
+                tooltip.style.display = 'none';
+                renderer.domElement.style.cursor = 'default';
+            }
+        }
+
+        function onClick(event) {
+            const mouse = new THREE.Vector2();
+            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+            
+            const raycaster = new THREE.Raycaster();
+            raycaster.setFromCamera(mouse, camera);
+            
+            const intersects = raycaster.intersectObjects(scene.children, true);
+            
+            if (intersects.length > 0) {
+                const object = intersects[0].object;
+                let parent = object.parent;
+                
+                while (parent && !parent.userData.key) {
+                    parent = parent.parent;
+                }
+                
+                if (parent && parent.userData.key) {
+                    focusOnObject(parent.userData.key);
+                    showInfo(parent.userData.key);
                 }
             }
         }
-        
-        function selectNode(node) {
-            activeNode = node;
-            const nodeId = node.userData.id;
-            const data = contentData[nodeId];
 
-            if (activeAnimation && activeAnimation.dispose) {
-                activeAnimation.dispose();
-            }
-            activeAnimation = createAnimation(data.animation);
-
-            document.getElementById('info-title').innerHTML = data.title;
-            document.getElementById('info-body').innerHTML = data.text;
-            document.getElementById('info-panel').classList.remove('hidden');
-
-            const targetPosition = node.position.clone().multiplyScalar(1.5);
-            const targetLookAt = node.position.clone();
-            
-            const startPosition = camera.position.clone();
-            const startLookAt = controls.target.clone();
-            let duration = 1000;
-            let startTime = null;
-
-            function moveCam(timestamp) {
-                if (!startTime) startTime = timestamp;
-                const progress = Math.min((timestamp - startTime) / duration, 1);
+        function focusOnObject(key) {
+            const object = celestialBodies[key];
+            console.log(`focusOnObject: Enfocando en objeto ${key}`);
+            if (object) {
+                const position = object.children[0].position.clone();
                 
-                const easedProgress = 0.5 * (1 - Math.cos(Math.PI * progress));
-
-                camera.position.lerpVectors(startPosition, targetPosition, easedProgress);
-                controls.target.lerpVectors(startLookAt, targetLookAt, easedProgress);
-                
-                if (progress < 1) {
-                    requestAnimationFrame(moveCam);
+                // Calcular distancia de forma segura, verificando que existan todas las propiedades
+                let distance = 15; // Valor predeterminado
+                if (object.children[0] && object.children[0].geometry) {
+                    if (object.children[0].geometry.parameters && object.children[0].geometry.parameters.radius) {
+                        distance = object.children[0].geometry.parameters.radius * 5 + 10;
+                        console.log(`focusOnObject: Usando radius de parameters: ${object.children[0].geometry.parameters.radius}`);
+                    } else if (object.children[0].geometry.boundingSphere && object.children[0].geometry.boundingSphere.radius) {
+                        distance = object.children[0].geometry.boundingSphere.radius * 5 + 10;
+                        console.log(`focusOnObject: Usando radius de boundingSphere: ${object.children[0].geometry.boundingSphere.radius}`);
+                    } else {
+                        console.log(`focusOnObject: No se encontró radius, usando valor predeterminado: ${distance}`);
+                    }
+                } else {
+                    console.log(`focusOnObject: Objeto o geometría no disponible, usando valor predeterminado: ${distance}`);
                 }
+                
+                // Calcular nueva posición de cámara
+                const targetPosition = new THREE.Vector3();
+                targetPosition.copy(position);
+                
+                // Animar transición
+                const startPosition = camera.position.clone();
+                const startTarget = controls.target.clone();
+                const duration = 1000; // milisegundos
+                const startTime = Date.now();
+                
+                function animateCamera() {
+                    const elapsed = Date.now() - startTime;
+                    const progress = Math.min(elapsed / duration, 1);
+                    const easeProgress = 1 - Math.pow(1 - progress, 3); // Ease out cubic
+                    
+                    // Calcular posición intermedia
+                    const newCameraPosition = new THREE.Vector3().copy(startPosition);
+                    const direction = new THREE.Vector3().subVectors(position, startPosition).normalize();
+                    const offset = direction.multiplyScalar(distance);
+                    const finalCameraPosition = new THREE.Vector3().copy(position).add(offset);
+                    
+                    newCameraPosition.lerp(finalCameraPosition, easeProgress);
+                    camera.position.copy(newCameraPosition);
+                    
+                    // Actualizar target
+                    const newTarget = new THREE.Vector3().copy(startTarget).lerp(position, easeProgress);
+                    controls.target.copy(newTarget);
+                    controls.update();
+                    
+                    if (progress < 1) {
+                        requestAnimationFrame(animateCamera);
+                    }
+                }
+                
+                animateCamera();
             }
-            requestAnimationFrame(moveCam);
+        }
+
+        function showInfo(key) {
+            const data = galaxyData[key];
+            if (data) {
+                const panel = document.getElementById('info-panel');
+                panel.querySelector('.category').textContent = data.category;
+                panel.querySelector('h3').textContent = data.title;
+                panel.querySelector('.content').innerHTML = data.content;
+                panel.classList.add('visible');
+            }
         }
 
         function closeInfoPanel() {
-            document.getElementById('info-panel').classList.add('hidden');
-            if (activeAnimation && activeAnimation.dispose) {
-                activeAnimation.dispose();
-                activeAnimation = null;
-            }
-            activeNode = null;
+            document.getElementById('info-panel').classList.remove('visible');
         }
-        
-        function createAnimation(type) {
-            let group = new THREE.Group();
-            let updateFn = () => {};
-            let disposeFn = () => { scene.remove(group); group.children.forEach(c => { if(c.geometry) c.geometry.dispose(); if(c.material) c.material.dispose(); }); };
-            
-            const animationPosition = new THREE.Vector3(0, 0, -5);
-            group.position.copy(animationPosition);
-            
-            switch(type) {
-                case 'digitalVortex': {
-                    const points = [];
-                    for(let i=0; i<5000; i++) {
-                        points.push(new THREE.Vector3((Math.random() - 0.5) * 10, (Math.random() - 0.5) * 10, (Math.random() - 0.5) * 10));
-                    }
-                    const geo = new THREE.BufferGeometry().setFromPoints(points);
-                    const mat = new THREE.PointsMaterial({color: 0x58a6ff, size: 0.05, transparent: true, opacity: 0.7});
-                    const vortex = new THREE.Points(geo, mat);
-                    group.add(vortex);
-                    updateFn = (time) => { vortex.rotation.y = time * 0.5; };
-                    break;
-                }
-                case 'imbalancedScales': {
-                    const beamGeo = new THREE.BoxGeometry(5, 0.1, 0.1);
-                    const beamMat = new THREE.MeshStandardMaterial({color: 0xffffff});
-                    const beam = new THREE.Mesh(beamGeo, beamMat);
-                    const panGeo = new THREE.CylinderGeometry(1, 1, 0.05, 32);
-                    const pan1 = new THREE.Mesh(panGeo, beamMat);
-                    pan1.position.x = -2.5;
-                    const pan2 = new THREE.Mesh(panGeo, beamMat);
-                    pan2.position.x = 2.5;
-                    beam.add(pan1, pan2);
-                    const boxGeo = new THREE.BoxGeometry(0.5, 0.5, 0.5);
-                    const boxMat = new THREE.MeshStandardMaterial({color: 0xff0000, emissive: 0x550000});
-                    const blackBox = new THREE.Mesh(boxGeo, boxMat);
-                    blackBox.position.set(2.5, 0.3, 0);
-                    group.add(beam, blackBox);
-                    updateFn = (time) => {
-                        beam.rotation.z = Math.sin(time) * 0.1 - 0.2;
-                        blackBox.position.y = 0.3 + beam.rotation.z * -2.5;
-                    };
-                    break;
-                }
-                 case 'regulatoryMaze': {
-                    for(let i=0; i<20; i++) {
-                        const wallGeo = new THREE.BoxGeometry(Math.random() * 4 + 1, 2, 0.1);
-                        const wallMat = new THREE.MeshStandardMaterial({color: 0xaaaaaa, transparent: true, opacity: 0.5});
-                        const wall = new THREE.Mesh(wallGeo, wallMat);
-                        wall.position.set((Math.random() - 0.5) * 10, (Math.random() - 0.5) * 2, (Math.random() - 0.5) * 10);
-                        wall.rotation.y = Math.random() * Math.PI;
-                        group.add(wall);
-                    }
-                    updateFn = (time) => { group.rotation.y = time * 0.1; };
-                    break;
-                }
-                case 'patchworkLaw': {
-                    for (let i = 0; i < 15; i++) {
-                        const geo = new THREE.PlaneGeometry(1.5, 1.5);
-                        const mat = new THREE.MeshStandardMaterial({color: new THREE.Color(Math.random() * 0x888888 + 0x444444), side: THREE.DoubleSide});
-                        const patch = new THREE.Mesh(geo, mat);
-                        patch.position.set((Math.random() - 0.5) * 5, (Math.random() - 0.5) * 5, (Math.random() - 0.5) * 2);
-                        patch.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI);
-                        group.add(patch);
-                    }
-                    updateFn = (time) => { group.rotation.y = time * 0.1; };
-                    break;
-                }
-                case 'networkGraph': {
-                    const nodesData = [];
-                    const sphereGeo = new THREE.SphereGeometry(0.2, 16, 16);
-                    const sphereMat = new THREE.MeshStandardMaterial({ color: 0x58a6ff, emissive: 0x113366 });
-                    for (let i = 0; i < 8; i++) {
-                        const node = new THREE.Mesh(sphereGeo, sphereMat);
-                        node.position.set((Math.random() - 0.5) * 6, (Math.random() - 0.5) * 6, (Math.random() - 0.5) * 6);
-                        group.add(node);
-                        nodesData.push(node);
-                    }
-                    for (let i = 0; i < nodesData.length * 1.5; i++) {
-                        const startNode = nodesData[Math.floor(Math.random() * nodesData.length)];
-                        const endNode = nodesData[Math.floor(Math.random() * nodesData.length)];
-                        if(startNode === endNode) continue;
-                        const lineGeo = new THREE.BufferGeometry().setFromPoints([startNode.position, endNode.position]);
-                        const lineMat = new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.3 });
-                        const line = new THREE.Line(lineGeo, lineMat);
-                        group.add(line);
-                    }
-                    updateFn = (time) => { group.rotation.y = time * 0.2; group.rotation.x = time * 0.1; };
-                    break;
-                }
-                case 'indiciumTransform': {
-                    const mainSphere = new THREE.Mesh(new THREE.SphereGeometry(1, 32, 32), new THREE.MeshStandardMaterial({ color: 0xffffff, transparent: true, opacity: 1.0, emissive: 0x444444 }));
-                    group.add(mainSphere);
-                    const smallSpheres = [];
-                    for (let i = 0; i < 20; i++) {
-                        const smallSphere = new THREE.Mesh(new THREE.SphereGeometry(0.1, 8, 8), new THREE.MeshStandardMaterial({ color: 0x58a6ff, transparent: true, opacity: 0 }));
-                        smallSphere.userData.targetPos = new THREE.Vector3((Math.random() - 0.5) * 4, (Math.random() - 0.5) * 4, (Math.random() - 0.5) * 4);
-                        group.add(smallSphere);
-                        smallSpheres.push(smallSphere);
-                    }
-                    updateFn = (time) => {
-                        const phase = (Math.sin(time * 0.7) + 1) / 2;
-                        mainSphere.material.opacity = 1 - phase;
-                        mainSphere.scale.setScalar(1 - phase);
-                        smallSpheres.forEach(s => {
-                            s.material.opacity = phase;
-                            s.position.lerp(s.userData.targetPos, phase * 0.1);
-                        });
-                    };
-                    break;
-                }
-                case 'glowingBoundaries': {
-                    const boxGeo = new THREE.BoxGeometry(5, 5, 5);
-                    const edges = new THREE.EdgesGeometry(boxGeo);
-                    const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0xff0000, transparent: true }));
-                    line.material.linewidth = 2;
-                    group.add(line);
-                    updateFn = (time) => {
-                        line.material.opacity = (Math.sin(time * 2) + 1) / 2 * 0.5 + 0.5;
-                        group.rotation.y = time * 0.1;
-                    };
-                    break;
-                }
-                case 'supportPillars': {
-                    const platformGeo = new THREE.CylinderGeometry(3, 3, 0.2, 32);
-                    const platformMat = new THREE.MeshStandardMaterial({ color: 0xcccccc, metalness: 0.5, roughness: 0.5 });
-                    const platform = new THREE.Mesh(platformGeo, platformMat);
-                    platform.position.y = 1.1;
-                    group.add(platform);
-                    const pillarGeo = new THREE.CylinderGeometry(0.3, 0.3, 2, 32);
-                    const pillarMat = new THREE.MeshStandardMaterial({ color: 0x58a6ff, metalness: 0.5, roughness: 0.5 });
-                    for (let i = 0; i < 5; i++) {
-                        const pillar = new THREE.Mesh(pillarGeo, pillarMat);
-                        const angle = (i / 5) * Math.PI * 2;
-                        pillar.position.set(Math.cos(angle) * 2, 0, Math.sin(angle) * 2);
-                        group.add(pillar);
-                    }
-                    updateFn = (time) => { group.rotation.y = time * 0.1; };
-                    break;
-                }
-                 case 'causalityLink': {
-                    const sphere1 = new THREE.Mesh(new THREE.SphereGeometry(0.5, 32, 16), new THREE.MeshStandardMaterial({color: 0xffffff}));
-                    sphere1.position.x = -2;
-                    const sphere2 = new THREE.Mesh(new THREE.SphereGeometry(0.5, 32, 16), new THREE.MeshStandardMaterial({color: 0xffffff}));
-                    sphere2.position.x = 2;
-                    group.add(sphere1, sphere2);
-                    const curve = new THREE.Line(
-                        new THREE.BufferGeometry().setFromPoints([sphere1.position, sphere2.position]),
-                        new THREE.LineBasicMaterial({color: 0xff0000, linewidth: 3, transparent: true})
-                    );
-                    group.add(curve);
-                    updateFn = (time) => {
-                        curve.material.opacity = (Math.sin(time * 5) + 1) / 2 * 0.7 + 0.3;
-                    };
-                    break;
-                }
-                case 'blackBoxDefense': {
-                    const boxGeo = new THREE.BoxGeometry(2, 2, 2);
-                    const boxMat = new THREE.MeshStandardMaterial({color: 0x111111});
-                    const blackBox = new THREE.Mesh(boxGeo, boxMat);
-                    group.add(blackBox);
 
-                    const shieldGeo = new THREE.PlaneGeometry(3, 3);
-                    const shieldMat = new THREE.MeshBasicMaterial({color: 0x58a6ff, transparent: true, opacity: 0.5, side: THREE.DoubleSide});
-                    const shield = new THREE.Mesh(shieldGeo, shieldMat);
-                    shield.position.z = 2;
-                    group.add(shield);
-                    updateFn = (time) => {
-                        shield.material.opacity = (Math.sin(time*3) + 1) / 2 * 0.3 + 0.3;
-                        group.rotation.y = time * 0.2;
-                    };
-                    break;
-                }
-                 case 'cognitiveAutomation': {
-                    const headGeo = new THREE.SphereGeometry(2, 32, 16);
-                    const headMat = new THREE.MeshStandardMaterial({color: 0x58a6ff, transparent: true, opacity: 0.2});
-                    const head = new THREE.Mesh(headGeo, headMat);
-                    group.add(head);
-
-                    const gearGeo = new THREE.TorusGeometry(0.5, 0.2, 8, 20);
-                    const gearMat = new THREE.MeshStandardMaterial({color: 0xffffff});
-                    for(let i=0; i<3; i++) {
-                        const gear = new THREE.Mesh(gearGeo, gearMat);
-                        gear.position.set((i-1)*1.2, 0, 0);
-                        gear.rotation.x = Math.PI / 2;
-                        gear.rotation.z = Math.random() * Math.PI;
-                        head.add(gear);
-                    }
-                    updateFn = (time) => {
-                        head.children.forEach((gear, i) => {
-                            gear.rotation.z = time * (i % 2 === 0 ? 1 : -1);
-                        });
-                        group.rotation.y = time * 0.1;
-                    };
-                    break;
-                }
-                case 'techToolbox': {
-                    const shapes = [
-                        new THREE.BoxGeometry(1, 1, 1),
-                        new THREE.SphereGeometry(0.7, 32, 16),
-                        new THREE.ConeGeometry(0.6, 1.5, 32),
-                        new THREE.TorusGeometry(0.6, 0.2, 16, 100),
-                        new THREE.OctahedronGeometry(0.8)
-                    ];
-                    shapes.forEach((geo, i) => {
-                        const mat = new THREE.MeshStandardMaterial({color: new THREE.Color().setHSL(i/shapes.length, 0.7, 0.6)});
-                        const mesh = new THREE.Mesh(geo, mat);
-                        mesh.position.set((Math.random() - 0.5) * 5, (Math.random() - 0.5) * 5, (Math.random() - 0.5) * 5);
-                        group.add(mesh);
-                    });
-                    updateFn = (time) => { group.rotation.y = time * 0.1; group.rotation.x = time * 0.15; };
-                    break;
-                }
-                 case 'justiceFoundation': {
-                    const baseGeo = new THREE.BoxGeometry(6, 0.5, 6);
-                    const baseMat = new THREE.MeshStandardMaterial({color: 0x444444, metalness: 0.2, roughness: 0.8});
-                    const base = new THREE.Mesh(baseGeo, baseMat);
-                    group.add(base);
-                    updateFn = (time) => { group.rotation.y = time * 0.05; };
-                    break;
-                }
-                case 'dualProfile': {
-                    const curve = new THREE.CatmullRomCurve3( [
-                        new THREE.Vector3( -2, -1, 0 ),
-                        new THREE.Vector3( -1, 1, 0 ),
-                        new THREE.Vector3( 1, -1, 0 ),
-                        new THREE.Vector3( 2, 1, 0 )
-                    ] );
-                    const tubeGeo = new THREE.TubeGeometry(curve, 20, 0.2, 8, false);
-                    const mat1 = new THREE.MeshStandardMaterial({color: 0x58a6ff, emissive: 0x113366});
-                    const mat2 = new THREE.MeshStandardMaterial({color: 0xffffff, emissive: 0x333333});
-                    const helix1 = new THREE.Mesh(tubeGeo, mat1);
-                    const helix2 = new THREE.Mesh(tubeGeo, mat2);
-                    helix2.rotation.z = Math.PI;
-                    group.add(helix1, helix2);
-                    updateFn = (time) => { group.rotation.y = time * 0.3; };
-                    break;
-                }
-                case 'layerModel': {
-                    for(let i=0; i<5; i++) {
-                        const planeGeo = new THREE.PlaneGeometry(5, 5);
-                        const planeMat = new THREE.MeshStandardMaterial({color: 0x58a6ff, emissive: 0x113366, transparent: true, opacity: 0.2 + i*0.05, side: THREE.DoubleSide});
-                        const plane = new THREE.Mesh(planeGeo, planeMat);
-                        plane.position.y = (i - 2) * 1.5;
-                        plane.rotation.x = -Math.PI / 2;
-                        group.add(plane);
-                    }
-                     updateFn = (time) => { group.rotation.y = time * 0.2; };
-                    break;
-                }
-                 case 'sourceLibrary': {
-                    for (let i = 0; i < 5; i++) {
-                        for (let j = 0; j < 5; j++) {
-                           const bookGeo = new THREE.BoxGeometry(0.8, 1.2, 0.1);
-                           const bookMat = new THREE.MeshStandardMaterial({color: new THREE.Color().setHSL(Math.random(), 0.5, 0.5)});
-                           const book = new THREE.Mesh(bookGeo, bookMat);
-                           book.position.set((i - 2) * 1.5, (j - 2) * 1.5, 0);
-                           group.add(book);
-                        }
-                    }
-                    updateFn = (time) => { group.rotation.y = time * 0.1; };
-                    break;
-                }
-                default: {
-                    const defaultGeo = new THREE.TorusKnotGeometry(2, 0.5, 100, 16);
-                    const defaultMat = new THREE.MeshStandardMaterial({color: 0xcccccc, emissive: 0x333333, metalness: 0.9, roughness: 0.1});
-                    const defaultObj = new THREE.Mesh(defaultGeo, defaultMat);
-                    group.add(defaultObj);
-                    updateFn = (time) => { 
-                        defaultObj.rotation.x = time * 0.2;
-                        defaultObj.rotation.y = time * 0.3;
-                    };
-                    break;
-                }
-            }
-
-            scene.add(group);
-            return {
-                update: updateFn,
-                dispose: disposeFn,
-                group: group
-            };
+        function toggleNavigation() {
+            const nav = document.getElementById('navigation');
+            nav.classList.toggle('visible');
         }
 
         function onWindowResize() {
@@ -649,35 +2095,364 @@
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
             labelRenderer.setSize(window.innerWidth, window.innerHeight);
+            
+            // Actualizar también los compositores de efectos
+            if (composer) {
+                composer.setSize(window.innerWidth, window.innerHeight);
+            }
+            if (bloomComposer) {
+                bloomComposer.setSize(window.innerWidth, window.innerHeight);
+            }
         }
 
-        function animate(time) {
-            requestAnimationFrame(animate);
-            time *= 0.001;
-
-            controls.update();
-            if(!activeNode) {
-                mainGroup.rotation.y += 0.0005;
-            }
-
-            if (activeAnimation) {
-                activeAnimation.update(time);
-                const targetPosition = new THREE.Vector3();
-                activeNode.getWorldPosition(targetPosition)
-
-                const forward = new THREE.Vector3().subVectors(camera.position, targetPosition).normalize();
+        // Sistema de detección de colisiones
+        function checkCollisions() {
+            const bodies = Object.values(celestialBodies);
+            const collisionThreshold = 0.5; // Umbral de distancia para considerar colisión
+            
+            // Crear esferas de colisión para cada cuerpo
+            for (let i = 0; i < bodies.length; i++) {
+                const bodyA = bodies[i];
+                if (!bodyA.userData || !bodyA.userData.data) continue;
                 
-                const finalPosition = targetPosition.add(forward.multiplyScalar(5));
-
-                activeAnimation.group.position.lerp(finalPosition, 0.1);
-                activeAnimation.group.lookAt(targetPosition);
+                const dataA = bodyA.userData.data;
+                const radiusA = dataA.size || 1;
+                const posA = bodyA.position.clone();
+                
+                // Verificar colisiones con otros cuerpos
+                for (let j = i + 1; j < bodies.length; j++) {
+                    const bodyB = bodies[j];
+                    if (!bodyB.userData || !bodyB.userData.data) continue;
+                    
+                    const dataB = bodyB.userData.data;
+                    const radiusB = dataB.size || 1;
+                    const posB = bodyB.position.clone();
+                    
+                    // Calcular distancia entre cuerpos
+                    const distance = posA.distanceTo(posB);
+                    const minDistance = (radiusA + radiusB) * collisionThreshold;
+                    
+                    // Si hay colisión, ajustar posiciones
+                    if (distance < minDistance) {
+                        // Calcular vector de dirección de la colisión
+                        const direction = new THREE.Vector3().subVectors(posA, posB).normalize();
+                        
+                        // Calcular cuánto deben moverse los cuerpos para evitar la colisión
+                        const overlap = minDistance - distance;
+                        const moveA = overlap * 0.5;
+                        const moveB = overlap * 0.5;
+                        
+                        // Mover cuerpos en direcciones opuestas para evitar la colisión
+                        bodyA.position.add(direction.clone().multiplyScalar(moveA));
+                        bodyB.position.add(direction.clone().multiplyScalar(-moveB));
+                    }
+                }
             }
-
-            renderer.render(scene, camera);
-            labelRenderer.render(scene, camera);
         }
 
-        init();
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            if (animationEnabled) {
+                // Calcular centro de masa para efectos gravitacionales
+                const centerOfMass = new THREE.Vector3(0, 0, 0);
+                let totalMass = 0;
+                
+                // Primer paso: calcular centro de masa
+                Object.keys(celestialBodies).forEach(key => {
+                    const body = celestialBodies[key];
+                    const data = galaxyData[key];
+                    const mass = data.size * data.size * data.size; // Aproximación de masa basada en tamaño
+                    
+                    if (body.children[0]) {
+                        const position = body.children[0].getWorldPosition(new THREE.Vector3());
+                        centerOfMass.add(position.multiplyScalar(mass));
+                        totalMass += mass;
+                    }
+                });
+                
+                // Normalizar centro de masa
+                if (totalMass > 0) {
+                    centerOfMass.divideScalar(totalMass);
+                }
+                
+                // Aplicar detección de colisiones
+                checkCollisions();
+                
+                // Rotación y movimiento de cuerpos celestiales
+                Object.keys(celestialBodies).forEach(key => {
+                    const body = celestialBodies[key];
+                    const data = galaxyData[key];
+                    
+                    // Rotación realista basada en el tipo de cuerpo celeste
+                    if (data.type === 'planet' || data.type === 'moon') {
+                        // Rotación más realista con velocidad variable según tamaño
+                        const rotationSpeed = 0.005 / (data.size * 0.5);
+                        body.children[0].rotation.y += rotationSpeed;
+                        // Añadir ligera inclinación en el eje
+                        body.children[0].rotation.x += rotationSpeed * 0.1;
+                    } else if (data.type === 'star') {
+                        // Las estrellas rotan más lentamente
+                        body.children[0].rotation.y += 0.003;
+                        // Efecto de pulsación para estrellas
+                        const pulseFactor = Math.sin(Date.now() * 0.001) * 0.05 + 1;
+                        body.children[0].scale.set(pulseFactor, pulseFactor, pulseFactor);
+                    } else if (data.type === 'sol') {
+                        body.children[0].rotation.y += 0.001;
+                        if (body.children[1] && body.children[1].material.uniforms && body.children[1].material.uniforms.viewVector) {
+                            body.children[1].rotation.y -= 0.001;
+                            body.children[1].material.uniforms.viewVector.value.copy(camera.position);
+                        }
+                    } else if (data.type === 'comet') {
+                        // Mover cometa en una trayectoria elíptica
+                        const time = Date.now() * 0.0001;
+                        const semiMajorAxis = 40;
+                        const semiMinorAxis = 20;
+                        const eccentricity = 0.5;
+                        const x = semiMajorAxis * Math.cos(time);
+                        const z = semiMinorAxis * Math.sin(time);
+                        body.position.set(x, body.position.y, z);
+                        
+                        // Orientar cometa hacia el centro
+                        body.lookAt(0, 0, 0);
+                    } else if (data.type === 'asteroid') {
+                        // Rotación irregular
+                        body.children[0].rotation.x += 0.01;
+                        body.children[0].rotation.y += 0.008;
+                        body.children[0].rotation.z += 0.005;
+                    } else if (data.type === 'nebula') {
+                        // Rotación lenta
+                        body.rotation.y += 0.0005;
+                        if (body.children.length > 1) {
+                            body.children[1].rotation.y -= 0.0003;
+                        }
+                    } else if (data.type === 'question') {
+                        // Órbitas elípticas para preguntas
+                        if (data.orbitParams) {
+                            // Reducir aún más la velocidad de movimiento (a un 20% de la original)
+                            const time = Date.now() * (data.orbitParams.speed * 0.2);
+                            const phase = data.orbitParams.phase || 0;
+                            
+                            // Calcular posición en órbita elíptica
+                            const a = data.orbitParams.semiMajorAxis;
+                            const b = data.orbitParams.semiMinorAxis;
+                            const e = data.orbitParams.eccentricity || 0;
+                            const i = data.orbitParams.inclination || 0;
+                            
+                            // Ecuaciones paramétricas de la elipse
+                            const theta = time + phase;
+                            const x = a * Math.cos(theta);
+                            const z = b * Math.sin(theta);
+                            const y = Math.sin(theta) * i * 10; // Inclinación
+                            
+                            body.position.set(x, y, z);
+                            
+                            // Rotación realista (también reducida)
+                            body.children[0].rotation.y += 0.001;
+                            body.children[0].rotation.x += 0.00025;
+                        }
+                    } else if (data.type === 'answer') {
+                        // Las respuestas orbitan alrededor de sus preguntas
+                        if (data.parentQuestion && data.orbitParams) {
+                            const parentBody = celestialBodies[data.parentQuestion];
+                            
+                            if (parentBody) {
+                                const parentPos = parentBody.position.clone();
+                                const time = Date.now() * (data.orbitParams.speed * 0.2); // Reducir velocidad al 20%
+                                const radius = data.orbitParams.radius || 3;
+                                const phase = data.orbitParams.phase || 0;
+                                
+                                // Órbita circular alrededor de la pregunta
+                                const x = parentPos.x + radius * Math.cos(time + phase);
+                                const y = parentPos.y + radius * Math.sin(time + phase) * 0.5;
+                                const z = parentPos.z + radius * Math.sin(time + phase);
+                                
+                                body.position.set(x, y, z);
+                                
+                                // Rotación más rápida para respuestas
+                                body.children[0].rotation.y += 0.004;
+                            }
+                        }
+                    }
+                    
+                    // Aplicar efectos gravitacionales más realistas (Leyes de Kepler)
+                    if (['planet', 'moon', 'asteroid', 'question', 'answer'].includes(data.type)) {
+                        // Vector desde el cuerpo al centro de masa
+                        const bodyPos = body.position.clone();
+                        const directionToCM = centerOfMass.clone().sub(bodyPos).normalize();
+                        
+                        // Distancia al centro de masa
+                        const distance = bodyPos.distanceTo(centerOfMass);
+                        
+                        // Ley de gravitación universal de Newton: F = G * (m1 * m2) / r²
+                        // Simplificado para visualización
+                        const G = 0.0001; // Constante gravitacional ajustada para visualización
+                        const centralMass = 100; // Masa del sol central
+                        const bodyMass = data.size * data.size; // Masa del cuerpo
+                        
+                        // Fuerza gravitacional según la ley de Newton
+                        const gravitationalPull = G * (centralMass * bodyMass) / (distance * distance);
+                        
+                        // Aplicar atracción hacia el centro de masa
+                        body.position.add(directionToCM.multiplyScalar(gravitationalPull));
+                        
+                        // Efecto de precesión orbital (rotación gradual del perihelio)
+                        if (data.orbitParams) {
+                            // Aplicar precesión al ángulo de fase
+                            data.orbitParams.phase += 0.00001 * (1 / distance); // Mayor precesión para órbitas cercanas
+                        }
+                        
+                        // Efecto de inclinación orbital variable (nutación)
+                        if (data.orbitParams && data.orbitParams.inclination) {
+                            // Variar ligeramente la inclinación con el tiempo
+                            const nutationFactor = Math.sin(Date.now() * 0.0001) * 0.01;
+                            data.orbitParams.inclination += nutationFactor;
+                        }
+                    }
+                });
+            }
+            
+            controls.update();
+            
+            // Renderizado con post-procesamiento
+            if (composer && bloomComposer) {
+                // Renderizar la escena normal
+                renderer.render(scene, camera);
+                
+                // Renderizar con post-procesamiento
+                composer.render();
+                
+                // Renderizar etiquetas después del post-procesamiento
+                labelRenderer.render(scene, camera);
+            } else {
+                // Fallback a renderizado estándar si no está disponible el post-procesamiento
+                renderer.render(scene, camera);
+                labelRenderer.render(scene, camera);
+            }
+        }
+
+        function setupPostProcessing() {
+            // Configurar EffectComposer principal
+            composer = new EffectComposer(renderer);
+            
+            // Añadir pase de renderizado básico
+            const renderPass = new RenderPass(scene, camera);
+            composer.addPass(renderPass);
+            
+            // Añadir efecto de bloom para objetos brillantes
+            const bloomPass = new UnrealBloomPass(
+                new THREE.Vector2(window.innerWidth, window.innerHeight),
+                0.8,    // strength
+                0.3,    // radius
+                0.7     // threshold
+            );
+            composer.addPass(bloomPass);
+            
+            // Añadir SSAO para mejorar la percepción de profundidad
+            const ssaoPass = new SSAOPass(scene, camera, window.innerWidth, window.innerHeight);
+            ssaoPass.kernelRadius = 16;
+            ssaoPass.minDistance = 0.005;
+            ssaoPass.maxDistance = 0.1;
+            composer.addPass(ssaoPass);
+            
+            // Configurar EffectComposer separado para bloom selectivo
+            bloomComposer = new EffectComposer(renderer);
+            bloomComposer.renderToScreen = false;
+            
+            const bloomRenderPass = new RenderPass(scene, camera);
+            bloomComposer.addPass(bloomRenderPass);
+            
+            const bloomPassIntense = new UnrealBloomPass(
+                new THREE.Vector2(window.innerWidth, window.innerHeight),
+                1.5,    // strength
+                0.4,    // radius
+                0.2     // threshold
+            );
+            bloomComposer.addPass(bloomPassIntense);
+        }
+
+        // Funciones de control
+        function resetView() {
+            const startPosition = camera.position.clone();
+            const startTarget = controls.target.clone();
+            const endPosition = new THREE.Vector3(50, 30, 50);
+            const endTarget = new THREE.Vector3(0, 0, 0);
+            const duration = 1000;
+            const startTime = Date.now();
+            
+            function animateReset() {
+                const elapsed = Date.now() - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                const easeProgress = 1 - Math.pow(1 - progress, 3);
+                
+                camera.position.lerpVectors(startPosition, endPosition, easeProgress);
+                controls.target.lerpVectors(startTarget, endTarget, easeProgress);
+                controls.update();
+                
+                if (progress < 1) {
+                    requestAnimationFrame(animateReset);
+                }
+            }
+            
+            animateReset();
+            closeInfoPanel();
+        }
+
+        function toggleAnimation() {
+            animationEnabled = !animationEnabled;
+            document.getElementById('toggle-animation-btn').textContent =
+                animationEnabled ? '⏯️ Animación' : '▶️ Animación';
+        }
+
+        function toggleLabels() {
+            labelsVisible = !labelsVisible;
+            
+            // Si las etiquetas deben mostrarse pero no existen, crearlas primero
+            if (labelsVisible) {
+                Object.keys(celestialBodies).forEach(key => {
+                    const body = celestialBodies[key];
+                    const data = galaxyData[key];
+                    
+                    // Verificar si ya existe una etiqueta
+                    const existingLabel = body.children.find(child => child instanceof CSS2DObject);
+                    
+                    if (!existingLabel) {
+                        // Si no existe etiqueta, crearla
+                        createLabel(body, data.title);
+                        console.log(`toggleLabels: Creada nueva etiqueta para ${key}`);
+                    } else {
+                        // Si existe, hacerla visible
+                        existingLabel.visible = true;
+                        console.log(`toggleLabels: Etiqueta existente hecha visible para ${key}`);
+                    }
+                });
+            } else {
+                // Ocultar todas las etiquetas existentes
+                Object.keys(celestialBodies).forEach(key => {
+                    const body = celestialBodies[key];
+                    const label = body.children.find(child => child instanceof CSS2DObject);
+                    if (label) {
+                        label.visible = false;
+                        console.log(`toggleLabels: Etiqueta ocultada para ${key}`);
+                    }
+                });
+            }
+            
+            document.getElementById('toggle-labels-btn').textContent =
+                labelsVisible ? '🏷️ Etiquetas' : '📝 Etiquetas';
+        }
+
+        function showOverview() {
+            showInfo('sol-justicia');
+            resetView();
+        }
+
+        // Inicializar cuando se cargue la página
+        console.log("Configurando evento 'load'");
+        window.addEventListener('load', function() {
+            console.log("Evento 'load' disparado");
+            init();
+        });
     </script>
 </body>
 </html>
